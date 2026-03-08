@@ -387,50 +387,21 @@ textarea { resize: vertical; min-height: 70px; }
   </div>
 </div>
 
-<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 <script>
-(function() {
-  // Load config.js without blocking — if missing (404), app still runs with localStorage
-  var s = document.createElement('script');
-  s.src = 'config.js';
-  s.async = false;
-  var done = function() {
-    window.SUPABASE_URL = window.SUPABASE_URL || '';
-    window.SUPABASE_ANON = window.SUPABASE_ANON || '';
-    document.dispatchEvent(new Event('jpt-config-ready'));
-  };
-  s.onload = s.onerror = done;
-  document.head.appendChild(s);
-})();
-</script>
-<script>
+// —— App runs on localStorage first. Supabase loads after so the UI always works. ——
 const STAGES = ['Applied','HR','Tech 1','Tech 2','CEO','Offer','Accepted'];
 const ABBR = {'Applied':'APP','HR':'HR','Tech 1':'T-1','Tech 2':'T-2','CEO':'CEO','Offer':'OFR','Accepted':'✓'};
 const SCOL = {'Applied':'var(--c-apply)','HR':'var(--c-hr)','Tech 1':'var(--c-t1)','Tech 2':'var(--c-t2)','CEO':'var(--c-ceo)','Offer':'var(--c-offer)','Accepted':'var(--c-accepted)','Rejected':'var(--c-rejected)'};
 
-// Supabase: from config.js (when present) or empty = localStorage only
-function getSupabaseConfig() {
-  return {
-    url: (typeof window !== 'undefined' && window.SUPABASE_URL) || '',
-    anon: (typeof window !== 'undefined' && window.SUPABASE_ANON) || ''
-  };
+var useSupabase = false;
+var supabase = null;
+function connectSupabase(url, anon) {
+  if (!url || !anon || typeof window.supabase === 'undefined') return;
+  try {
+    supabase = window.supabase.createClient(url, anon);
+    useSupabase = true;
+  } catch (e) { console.warn('Supabase connect failed', e); }
 }
-let useSupabase = false;
-let supabase = null;
-function initSupabase() {
-  var cfg = getSupabaseConfig();
-  useSupabase = !!(cfg.url && cfg.anon);
-  supabase = null;
-  if (useSupabase && typeof window.supabase !== 'undefined') {
-    try {
-      supabase = window.supabase.createClient(cfg.url, cfg.anon);
-    } catch (e) {
-      console.warn('Supabase init failed, using localStorage', e);
-      useSupabase = false;
-    }
-  }
-}
-initSupabase();
 
 let data = [];
 let watchlist = [];
@@ -933,10 +904,24 @@ async function init() {
   renderAll();
 }
 init();
-document.addEventListener('jpt-config-ready', function() {
-  initSupabase();
-  init();
-});
+
+// Optional: load Supabase + config after app is ready (for Vercel / cloud sync)
+(function loadSupabaseOptional() {
+  var script = document.createElement('script');
+  script.src = 'https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2';
+  script.onload = function() {
+    var cfg = document.createElement('script');
+    cfg.src = 'config.js';
+    cfg.onload = cfg.onerror = function() {
+      var url = (window.SUPABASE_URL || '').trim();
+      var anon = (window.SUPABASE_ANON || '').trim();
+      if (url && anon) { connectSupabase(url, anon); init(); }
+    };
+    document.head.appendChild(cfg);
+  };
+  script.onerror = function() {};
+  document.head.appendChild(script);
+})();
 </script>
 </body>
 </html>

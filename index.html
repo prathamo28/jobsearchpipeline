@@ -388,25 +388,49 @@ textarea { resize: vertical; min-height: 70px; }
 </div>
 
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
-<script src="config.js"></script>
+<script>
+(function() {
+  // Load config.js without blocking — if missing (404), app still runs with localStorage
+  var s = document.createElement('script');
+  s.src = 'config.js';
+  s.async = false;
+  var done = function() {
+    window.SUPABASE_URL = window.SUPABASE_URL || '';
+    window.SUPABASE_ANON = window.SUPABASE_ANON || '';
+    document.dispatchEvent(new Event('jpt-config-ready'));
+  };
+  s.onload = s.onerror = done;
+  document.head.appendChild(s);
+})();
+</script>
 <script>
 const STAGES = ['Applied','HR','Tech 1','Tech 2','CEO','Offer','Accepted'];
 const ABBR = {'Applied':'APP','HR':'HR','Tech 1':'T-1','Tech 2':'T-2','CEO':'CEO','Offer':'OFR','Accepted':'✓'};
 const SCOL = {'Applied':'var(--c-apply)','HR':'var(--c-hr)','Tech 1':'var(--c-t1)','Tech 2':'var(--c-t2)','CEO':'var(--c-ceo)','Offer':'var(--c-offer)','Accepted':'var(--c-accepted)','Rejected':'var(--c-rejected)'};
 
-// Supabase: from config.js (Vercel build) or empty = localStorage only
-const SUPABASE_URL = (typeof window !== 'undefined' && window.SUPABASE_URL) || '';
-const SUPABASE_ANON = (typeof window !== 'undefined' && window.SUPABASE_ANON) || '';
-let useSupabase = !!(SUPABASE_URL && SUPABASE_ANON);
+// Supabase: from config.js (when present) or empty = localStorage only
+function getSupabaseConfig() {
+  return {
+    url: (typeof window !== 'undefined' && window.SUPABASE_URL) || '',
+    anon: (typeof window !== 'undefined' && window.SUPABASE_ANON) || ''
+  };
+}
+let useSupabase = false;
 let supabase = null;
-if (useSupabase && typeof window.supabase !== 'undefined') {
-  try {
-    supabase = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON);
-  } catch (e) {
-    console.warn('Supabase init failed, using localStorage', e);
-    useSupabase = false;
+function initSupabase() {
+  var cfg = getSupabaseConfig();
+  useSupabase = !!(cfg.url && cfg.anon);
+  supabase = null;
+  if (useSupabase && typeof window.supabase !== 'undefined') {
+    try {
+      supabase = window.supabase.createClient(cfg.url, cfg.anon);
+    } catch (e) {
+      console.warn('Supabase init failed, using localStorage', e);
+      useSupabase = false;
+    }
   }
 }
+initSupabase();
 
 let data = [];
 let watchlist = [];
@@ -909,6 +933,10 @@ async function init() {
   renderAll();
 }
 init();
+document.addEventListener('jpt-config-ready', function() {
+  initSupabase();
+  init();
+});
 </script>
 </body>
 </html>

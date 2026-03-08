@@ -20,6 +20,18 @@ A single-page app to track your job application pipeline and watchlist. All data
 
 No build step or server is required for basic use.
 
+## Deploy on Vercel (personal use)
+
+1. Push this repo to **GitHub** (if you haven’t already).
+2. Go to [vercel.com](https://vercel.com) and sign in with GitHub.
+3. Click **Add New… → Project**, import your **Job-Search-Pipeline** repo, then **Deploy** (leave settings as default).
+4. After the first deploy, go to your project on Vercel → **Settings** → **Environment Variables**. Add:
+   - **Name:** `SUPABASE_URL` → **Value:** `https://YOUR_PROJECT_REF.supabase.co`
+   - **Name:** `SUPABASE_ANON` → **Value:** your Supabase publishable or anon key
+5. Go to **Deployments**, open the **⋯** on the latest deployment, click **Redeploy**. This rebuilds the app with your env vars so the live site uses your Supabase database.
+
+Your app will be at `https://your-project-name.vercel.app`. Data is stored in Supabase and stays the same on any device.
+
 ## Optional: Supabase (cloud database)
 
 To store data in the cloud so it’s the same on any device:
@@ -27,13 +39,15 @@ To store data in the cloud so it’s the same on any device:
 1. Create a free project at [supabase.com](https://supabase.com).
 2. In the Supabase dashboard, open **SQL Editor** → **New query**. Paste the contents of `supabase/schema.sql` and click **Run**.
 3. Open **Project Settings** → **API**. Copy the **Project URL** and the **anon public** key.
-4. In `index.html`, find the two lines near the top of the script and set them:
-   - `SUPABASE_URL = 'https://YOUR_PROJECT_REF.supabase.co';`
-   - `SUPABASE_ANON = 'your-publishable-or-anon-key';`
+4. **On Vercel:** set `SUPABASE_URL` and `SUPABASE_ANON` as environment variables (see “Deploy on Vercel” above).
+   **Local only:** create a file `config.js` in the project root with:
+   ```js
+   window.SUPABASE_URL = 'https://YOUR_PROJECT_REF.supabase.co';
+   window.SUPABASE_ANON = 'your-key';
+   ```
 5. Reload the app. Data will load and save to Supabase.
 
-**Important:** Do **not** commit your real API keys to GitHub. After cloning the repo, add your keys only in your local copy (or use environment variables when you deploy). The repo is left with empty placeholders on purpose.
-If either value is left empty, the app uses only localStorage (no Supabase).
+Do not commit real API keys. On Vercel, use env vars. If Supabase is not set, the app uses only localStorage.
 
 ## Data and backup
 

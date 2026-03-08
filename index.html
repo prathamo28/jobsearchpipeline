@@ -388,15 +388,15 @@ textarea { resize: vertical; min-height: 70px; }
 </div>
 
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+<script src="config.js"></script>
 <script>
 const STAGES = ['Applied','HR','Tech 1','Tech 2','CEO','Offer','Accepted'];
 const ABBR = {'Applied':'APP','HR':'HR','Tech 1':'T-1','Tech 2':'T-2','CEO':'CEO','Offer':'OFR','Accepted':'✓'};
 const SCOL = {'Applied':'var(--c-apply)','HR':'var(--c-hr)','Tech 1':'var(--c-t1)','Tech 2':'var(--c-t2)','CEO':'var(--c-ceo)','Offer':'var(--c-offer)','Accepted':'var(--c-accepted)','Rejected':'var(--c-rejected)'};
 
-// ── Supabase (optional): set both to use cloud DB; leave empty to use only localStorage
-// Set these for cloud DB. Don't commit real keys — use env or add locally only.
-const SUPABASE_URL = '';
-const SUPABASE_ANON = '';
+// Supabase: from config.js (Vercel build) or empty = localStorage only
+const SUPABASE_URL = (typeof window !== 'undefined' && window.SUPABASE_URL) || '';
+const SUPABASE_ANON = (typeof window !== 'undefined' && window.SUPABASE_ANON) || '';
 const useSupabase = !!(SUPABASE_URL && SUPABASE_ANON);
 const supabase = useSupabase ? window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON) : null;
 

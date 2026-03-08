@@ -870,8 +870,10 @@ function renderWatchlist() {
 }
 
 function updateBadges() {
-  document.getElementById('badge-pipeline').textContent = data.length;
-  document.getElementById('badge-watchlist').textContent = watchlist.length;
+  var bp = document.getElementById('badge-pipeline');
+  var bw = document.getElementById('badge-watchlist');
+  if (bp) bp.textContent = (data && data.length) || 0;
+  if (bw) bw.textContent = (watchlist && watchlist.length) || 0;
 }
 
 const _origRenderAll = renderAll;
@@ -929,8 +931,9 @@ async function init() {
   }
   if (data.length && !selectedId) selectedId = data[0].id;
   renderAll();
-  setTimeout(renderAll, 0);
-  setTimeout(renderAll, 100);
+  setTimeout(function() { updateBadges(); renderAll(); }, 0);
+  setTimeout(function() { updateBadges(); renderAll(); }, 150);
+  setTimeout(function() { updateBadges(); }, 400);
 }
 init();
 

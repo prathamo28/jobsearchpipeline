@@ -87,14 +87,18 @@ header {
 .dashboard-donut::after { content: ''; position: absolute; inset: 10px; border-radius: 50%; background: var(--s1); pointer-events: none; }
 .donut-center { position: relative; z-index: 1; font-family: 'JetBrains Mono', monospace; font-size: 12px; font-weight: 700; color: var(--text); }
 .dashboard-stats { display: flex; align-items: center; gap: 16px; flex-wrap: wrap; }
-.dash-stat { display: flex; align-items: baseline; gap: 6px; padding: 6px 12px; background: var(--s3); border: 1px solid var(--border); border-radius: 6px; }
+.dash-stat { display: flex; align-items: baseline; gap: 6px; padding: 6px 12px; background: var(--s3); border: 1px solid var(--border); border-radius: 6px; cursor: pointer; font-family: inherit; color: inherit; transition: border-color .15s, background .15s; }
+.dash-stat:hover { border-color: var(--accent); background: var(--s2); }
 .dash-stat-n { font-family: 'JetBrains Mono', monospace; font-size: 18px; font-weight: 700; line-height: 1; }
 .dash-stat-l { font-size: 10px; letter-spacing: .08em; text-transform: uppercase; color: var(--muted); }
+.sum-cell-btn { background: none; border: none; border-right: 1px solid var(--border); cursor: pointer; font-family: inherit; color: inherit; border-radius: 0; transition: background .15s; }
+.sum-cell-btn:hover { background: var(--s2); }
 
 /* SUMMARY (legacy row, kept compact) */
 .summary-bar { display: flex; border-bottom: 1px solid var(--border); background: var(--s1); overflow-x: auto; }
 .sum-cell { flex: 1; min-width: 72px; padding: 8px 10px; border-right: 1px solid var(--border); text-align: center; }
 .sum-cell:last-child { border-right: none; }
+.sum-cell-btn:last-child { border-right: none; }
 .sum-n { font-family: 'JetBrains Mono', monospace; font-size: 16px; font-weight: 700; line-height: 1; }
 .sum-l { font-size: 8px; letter-spacing: .1em; text-transform: uppercase; color: var(--muted); margin-top: 2px; }
 
@@ -277,6 +281,8 @@ textarea { resize: vertical; min-height: 70px; }
       <div class="filter-row">
         <select class="fsel" id="stageFilter" onchange="renderSidebar()">
           <option value="">All stages</option>
+          <option value="interviews">Interviews (T1/T2/CEO)</option>
+          <option value="offers">Offers</option>
           <option>Applied</option><option>HR</option><option>Tech 1</option>
           <option>Tech 2</option><option>CEO</option><option>Offer</option>
           <option>Accepted</option><option>Rejected</option>
@@ -471,6 +477,19 @@ function openEditCompany(id) {
   document.getElementById('companyModal').classList.add('open');
 }
 
+function openAddAnotherRole(cid) {
+  const c = getC(cid);
+  if(!c) return;
+  editingId = null;
+  document.getElementById('compModalTitle').textContent = 'ADD ANOTHER ROLE — '+c.name;
+  document.getElementById('m_company').value = c.name;
+  document.getElementById('m_role').value = '';
+  document.getElementById('m_location').value = c.location||'';
+  document.getElementById('m_url').value = '';
+  document.getElementById('m_date').value = today();
+  document.getElementById('companyModal').classList.add('open');
+}
+
 function saveCompany() {
   const name = document.getElementById('m_company').value.trim();
   if(!name){alert('Company name required');return;}
@@ -610,18 +629,18 @@ function renderSummary() {
   }
   var ds=document.getElementById('dashboardStats');
   if(ds)ds.innerHTML=[
-    ['Applied',total,'var(--text)'],
-    ['In progress',active,'var(--blue)'],
-    ['Rejected',rejected,'var(--red)'],
-    ['Accepted',accepted,'var(--gold)']
-  ].map(([l,n,col])=>`<div class="dash-stat"><span class="dash-stat-n" style="color:${col}">${n}</span><span class="dash-stat-l">${l}</span></div>`).join('');
+    ['Applied','total',total,'var(--text)'],
+    ['In progress','active',active,'var(--blue)'],
+    ['Rejected','rejected',rejected,'var(--red)'],
+    ['Accepted','accepted',accepted,'var(--gold)']
+  ].map(([l,typ,n,col])=>`<button type="button" class="dash-stat" onclick="applySummaryFilter('${typ}')" title="Show ${l} in list"><span class="dash-stat-n" style="color:${col}">${n}</span><span class="dash-stat-l">${l}</span></button>`).join('');
 
   var sb=document.getElementById('summaryBar');
   if(sb)sb.innerHTML=[
-    ['TOTAL',total,'var(--text)'],['ACTIVE',active,'var(--blue)'],
-    ['INTERVIEWS',interviews,'var(--c-t1)'],['OFFERS',offers,'var(--c-offer)'],
-    ['ACCEPTED',accepted,'var(--gold)'],['REJECTED',rejected,'var(--red)']
-  ].map(([l,n,col])=>`<div class="sum-cell"><div class="sum-n" style="color:${col}">${n}</div><div class="sum-l">${l}</div></div>`).join('');
+    ['TOTAL','total',total,'var(--text)'],['ACTIVE','active',active,'var(--blue)'],
+    ['INTERVIEWS','interviews',interviews,'var(--c-t1)'],['OFFERS','offers',offers,'var(--c-offer)'],
+    ['ACCEPTED','accepted',accepted,'var(--gold)'],['REJECTED','rejected',rejected,'var(--red)']
+  ].map(([l,typ,n,col])=>`<button type="button" class="sum-cell sum-cell-btn" onclick="applySummaryFilter('${typ}')" title="Show ${l} in list"><div class="sum-n" style="color:${col}">${n}</div><div class="sum-l">${l}</div></button>`).join('');
 }
 
 function renderSidebar() {
@@ -631,8 +650,10 @@ function renderSidebar() {
   const filtered=data.filter(c=>{
     if(q&&!c.name.toLowerCase().includes(q)&&!(c.role||'').toLowerCase().includes(q)) return false;
     const stage=activeStage(c);
-    if(sf&&stage!==sf) return false;
     const a=lastAttempt(c);
+    if(sf==='interviews'){ if(!['Tech 1','Tech 2','CEO'].includes(stage)||a?.rejected) return false; }
+    else if(sf==='offers'){ if(!['Offer','Accepted'].includes(stage)||a?.rejected) return false; }
+    else if(sf&&stage!==sf) return false;
     if(rf==='active'&&(a?.rejected||a?.currentStage==='Accepted')) return false;
     if(rf==='rejected'&&!a?.rejected) return false;
     if(rf==='accepted'&&a?.currentStage!=='Accepted') return false;
@@ -660,6 +681,22 @@ function renderSidebar() {
 
 function selectCompany(id) { selectedId=id; renderSidebar(); renderDetail(id); }
 
+function applySummaryFilter(type) {
+  switchView('pipeline');
+  var stageEl=document.getElementById('stageFilter');
+  var statusEl=document.getElementById('statusFilter');
+  if(!stageEl||!statusEl) return;
+  stageEl.value='';
+  statusEl.value='';
+  if(type==='total') { stageEl.value=''; statusEl.value=''; }
+  else if(type==='active') statusEl.value='active';
+  else if(type==='rejected') statusEl.value='rejected';
+  else if(type==='accepted') statusEl.value='accepted';
+  else if(type==='interviews') stageEl.value='interviews';
+  else if(type==='offers') stageEl.value='offers';
+  renderSidebar();
+}
+
 function renderDetail(id) {
   const c=getC(id);
   if(!c) return;
@@ -675,6 +712,7 @@ function renderDetail(id) {
       ${c.url?`<a href="${c.url}" target="_blank" style="font-family:JetBrains Mono,monospace;font-size:10px;color:var(--accent);text-decoration:none;margin-top:4px;display:inline-block">↗ JOB POSTING</a>`:''}
     </div>
     <div class="det-actions">
+      <button type="button" class="btn btn-xs" onclick="openAddAnotherRole('${c.id}')" title="Apply for another role at this organization">+ ANOTHER ROLE HERE</button>
       <button class="btn btn-xs" onclick="openEditCompany('${c.id}')">EDIT INFO</button>
       ${(isRej||isAcc)?`<button class="btn btn-xs btn-green" onclick="reapply('${c.id}')">↺ REAPPLY</button>`:''}
       <button class="btn btn-xs btn-red" onclick="deleteCompany('${c.id}')">✕ DELETE</button>

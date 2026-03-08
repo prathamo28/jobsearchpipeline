@@ -4,7 +4,11 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>JOB PIPELINE TRACKER</title>
-<link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@300;400;500;700&family=Syne:wght@400;600;700;800&display=swap" rel="stylesheet">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="preconnect" href="https://cdn.jsdelivr.net">
+<link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;700&family=Syne:wght@400;600;700&display=swap" rel="stylesheet" media="print" onload="this.media='all'">
+<noscript><link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;700&family=Syne:wght@400;600;700&display=swap" rel="stylesheet"></noscript>
 <style>
 :root {
   --bg: #080810;
@@ -37,7 +41,7 @@
 }
 * { box-sizing: border-box; margin: 0; padding: 0; }
 body {
-  font-family: 'Syne', sans-serif;
+  font-family: 'Syne', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
   background: var(--bg);
   color: var(--text);
   min-height: 100vh;
@@ -495,26 +499,32 @@ function saveCompany() {
     saveWatch2(); window._promoteFromWatchId = null;
   }
   if (!editingId) switchView('pipeline');
-  renderAll();
+  refreshAll();
 }
 
 function deleteCompany(id) {
   if(!confirm('Delete this company?')) return;
   data = data.filter(c=>c.id!==id);
   if(selectedId===id) selectedId=null;
-  save(); renderAll();
+  save(); refreshAll();
 }
 
 // ── STAGE OPS ──
-function advanceStage(cid) {
-  const c=getC(cid), a=lastAttempt(c);
-  if(a.rejected||a.currentStage==='Accepted') return;
-  const i=STAGES.indexOf(a.currentStage);
-  if(i<STAGES.length-1) {
-    a.currentStage=STAGES[i+1];
-    a.stageHistory.push({stage:a.currentStage,date:today()});
-    save(); renderAll();
-  }
+async function advanceStage(cid) {
+  if(!cid) return;
+  const c=getC(cid);
+  if(!c||!c.attempts||!c.attempts.length) return;
+  const a=lastAttempt(c);
+  if(!a||a.rejected||a.currentStage==='Accepted') return;
+  let i=STAGES.indexOf(a.currentStage);
+  if(i<0) i=0;
+  if(i>=STAGES.length-1) return;
+  a.currentStage=STAGES[i+1];
+  if(!a.stageHistory) a.stageHistory=[];
+  a.stageHistory.push({stage:a.currentStage,date:today()});
+  await save();
+  refreshAll();
+  if(selectedId===cid) renderDetail(cid);
 }
 
 function openReject(cid) {
@@ -538,13 +548,13 @@ function confirmReject() {
   const c=getC(rejectCtx.cid), a=lastAttempt(c);
   Object.assign(a,{rejected:true, rejectionType:selectedRejType, rejectionStage:rejectCtx.stage, rejectionNote:document.getElementById('rejNote').value});
   a.stageHistory.push({stage:'Rejected',date:today(),rejType:selectedRejType});
-  save(); closeModal('rejectModal'); renderAll();
+  save(); closeModal('rejectModal'); refreshAll();
 }
 
 function reapply(cid) {
   const c=getC(cid);
   c.attempts.push({id:uid(), startDate:today(), currentStage:'Applied', stageHistory:[{stage:'Applied',date:today()}], rejected:false, rejectionType:null, rejectionStage:null, rejectionNote:null, comments:[]});
-  save(); renderAll();
+  save(); refreshAll();
 }
 
 // ── COMMENTS ──
@@ -565,6 +575,12 @@ function deleteComment(cid, aid, cmid) {
 
 // ── RENDER ──
 function renderAll() { renderSummary(); renderSidebar(); if(selectedId) renderDetail(selectedId); }
+function refreshAll() {
+  renderAll();
+  renderWatchlist();
+  updateBadges();
+  requestAnimationFrame(function() { updateBadges(); });
+}
 
 function renderSummary() {
   const total=data.length;
@@ -679,13 +695,13 @@ function buildAttemptCard(c, a, num, isCurrent) {
       <div class="att-date">Started: ${fmt(a.startDate)}</div>
     </div>
     <div class="att-btns">
-      ${isCurrent&&!a.rejected&&a.currentStage!=='Accepted'&&nextStage?`<button class="btn btn-xs btn-green" onclick="advanceStage('${c.id}')">→ ${nextStage.toUpperCase()}</button>`:''}
+      ${isCurrent&&!a.rejected&&a.currentStage!=='Accepted'&&nextStage?`<button type="button" class="btn btn-xs btn-green" onclick="advanceStage('${String(c.id).replace(/'/g,"\\'")}')">→ ${nextStage.toUpperCase()}</button>`:''}
       ${isCurrent&&!a.rejected&&a.currentStage!=='Accepted'?`<button class="btn btn-xs btn-red" onclick="openReject('${c.id}')">✕ REJECTED HERE</button>`:''}
       ${isCurrent&&(a.rejected||a.currentStage==='Accepted')?`<button class="btn btn-xs btn-green" onclick="reapply('${c.id}')">↺ REAPPLY</button>`:''}
     </div>
   </div>`;
 
-  // Flow
+  // Flow (click next stage to advance)
   let flow=`<div class="pipeline-flow"><div class="flow-stages">`;
   STAGES.forEach((stage,i)=>{
     const rejIdx=a.rejected?STAGES.indexOf(a.rejectionStage):-1;
@@ -697,7 +713,9 @@ function buildAttemptCard(c, a, num, isCurrent) {
     const nActive=bClass!=='pending';
     const connDone=!a.rejected&&i<stageIdx;
     const connRej=a.rejected&&i<rejIdx;
-    flow+=`<div class="flow-stage"><div class="stage-node">
+    const isNext=isCurrent&&!a.rejected&&a.currentStage!=='Accepted'&&i===stageIdx+1;
+    const clickAdvance=isNext?` onclick="advanceStage('${String(c.id).replace(/'/g,"\\'")}')" style="cursor:pointer" title="Click to advance to ${stage}"`:'';
+    flow+=`<div class="flow-stage"><div class="stage-node"${clickAdvance}>
       <div class="stage-bubble ${bClass}">${ABBR[stage]}</div>
       <div class="stage-name ${nActive?'active':''}">${stage}</div>
     </div></div>`;
@@ -846,13 +864,13 @@ function saveWatch() {
   } else {
     watchlist.unshift({id:uid(), name, role:document.getElementById('w_role').value, url:document.getElementById('w_url').value, priority:document.getElementById('w_priority').value, note:document.getElementById('w_note').value, addedDate:today()});
   }
-  saveWatch2(); closeModal('watchModal'); renderWatchlist(); updateBadges();
+  saveWatch2(); closeModal('watchModal'); refreshAll();
 }
 
 function deleteWatch(id) {
   if(!confirm('Remove from watchlist?')) return;
   watchlist = watchlist.filter(w=>w.id!==id);
-  saveWatch2(); renderWatchlist(); updateBadges();
+  saveWatch2(); refreshAll();
 }
 
 function promoteToApplied(id) {
@@ -943,9 +961,16 @@ async function init() {
       ]);
       var fromSupabasePipeline = (p?.data?.value && Array.isArray(p.data.value)) ? p.data.value : [];
       var fromSupabaseWatch = (w?.data?.value && Array.isArray(w.data.value)) ? w.data.value : [];
+      var useLocal = (data.length > fromSupabasePipeline.length) || (watchlist.length > fromSupabaseWatch.length);
       if (fromSupabasePipeline.length > 0 || fromSupabaseWatch.length > 0) {
-        data = fromSupabasePipeline;
-        watchlist = fromSupabaseWatch;
+        if (useLocal) {
+          await save(); await saveWatch2();
+        } else {
+          data = fromSupabasePipeline;
+          watchlist = fromSupabaseWatch;
+          localStorage.setItem('jpt3', JSON.stringify(data));
+          localStorage.setItem('jpt3_watch', JSON.stringify(watchlist));
+        }
       } else {
         data = fromLocalPipeline;
         watchlist = fromLocalWatch;
@@ -967,14 +992,13 @@ async function init() {
   }
   if (data.length && !selectedId) selectedId = data[0].id;
   renderAll();
-  setTimeout(function() { updateBadges(); renderAll(); }, 0);
-  setTimeout(function() { updateBadges(); renderAll(); }, 150);
-  setTimeout(function() { updateBadges(); }, 400);
+  renderWatchlist();
+  updateBadges();
+  requestAnimationFrame(function() { updateBadges(); });
 }
 init();
 
-// Optional: load Supabase + config after app is ready (for Vercel / cloud sync)
-(function loadSupabaseOptional() {
+function loadSupabaseWhenIdle() {
   var script = document.createElement('script');
   script.src = 'https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2';
   script.onload = function() {
@@ -989,7 +1013,12 @@ init();
   };
   script.onerror = function() {};
   document.head.appendChild(script);
-})();
+}
+if (typeof requestIdleCallback !== 'undefined') {
+  requestIdleCallback(function() { loadSupabaseWhenIdle(); }, { timeout: 2500 });
+} else {
+  setTimeout(loadSupabaseWhenIdle, 1200);
+}
 </script>
 </body>
 </html>

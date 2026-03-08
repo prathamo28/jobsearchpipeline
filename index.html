@@ -233,7 +233,10 @@ textarea { resize: vertical; min-height: 70px; }
 <header>
   <div class="logo"><div class="logo-dot"></div>PIPELINE_TRACKER</div>
   <div class="hdr-right">
-    <button class="btn" onclick="exportData()">↓ EXPORT CSV</button>
+    <input type="file" id="backupFileInput" accept=".json,application/json" style="display:none" onchange="importBackup(event)">
+    <button class="btn" onclick="exportData()">↓ CSV</button>
+    <button class="btn" onclick="exportBackup()">↓ BACKUP</button>
+    <button class="btn" onclick="document.getElementById('backupFileInput').click()">↑ RESTORE</button>
     <button class="btn btn-green" onclick="openAddCompany()">+ ADD COMPANY</button>
   </div>
 </header>
@@ -384,18 +387,39 @@ textarea { resize: vertical; min-height: 70px; }
   </div>
 </div>
 
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 <script>
 const STAGES = ['Applied','HR','Tech 1','Tech 2','CEO','Offer','Accepted'];
 const ABBR = {'Applied':'APP','HR':'HR','Tech 1':'T-1','Tech 2':'T-2','CEO':'CEO','Offer':'OFR','Accepted':'✓'};
 const SCOL = {'Applied':'var(--c-apply)','HR':'var(--c-hr)','Tech 1':'var(--c-t1)','Tech 2':'var(--c-t2)','CEO':'var(--c-ceo)','Offer':'var(--c-offer)','Accepted':'var(--c-accepted)','Rejected':'var(--c-rejected)'};
 
-let data = JSON.parse(localStorage.getItem('jpt3') || '[]');
+// ── Supabase (optional): set both to use cloud DB; leave empty to use only localStorage
+// Set these for cloud DB. Don't commit real keys — use env or add locally only.
+const SUPABASE_URL = '';
+const SUPABASE_ANON = '';
+const useSupabase = !!(SUPABASE_URL && SUPABASE_ANON);
+const supabase = useSupabase ? window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON) : null;
+
+let data = [];
+let watchlist = [];
 let selectedId = null;
 let editingId = null;
 let rejectCtx = null;
 let selectedRejType = null;
 
-const save = () => localStorage.setItem('jpt3', JSON.stringify(data));
+async function save() {
+  if (useSupabase && supabase) {
+    try { await supabase.from('app_data').upsert({ key: 'pipeline', value: data, updated_at: new Date().toISOString() }, { onConflict: 'key' }); } catch (e) { console.warn('Supabase save failed', e); }
+  }
+  localStorage.setItem('jpt3', JSON.stringify(data));
+}
+
+async function saveWatch2() {
+  if (useSupabase && supabase) {
+    try { await supabase.from('app_data').upsert({ key: 'watchlist', value: watchlist, updated_at: new Date().toISOString() }, { onConflict: 'key' }); } catch (e) { console.warn('Supabase watchlist save failed', e); }
+  }
+  localStorage.setItem('jpt3_watch', JSON.stringify(watchlist));
+}
 const uid = () => Date.now().toString(36) + Math.random().toString(36).slice(2,6);
 const today = () => new Date().toISOString().split('T')[0];
 const fmt = d => d ? new Date(d).toLocaleDateString('en-GB',{day:'2-digit',month:'short',year:'numeric'}) : '—';
@@ -689,10 +713,54 @@ function exportData() {
   el.click();
 }
 
+// Full backup (pipeline + watchlist) — save this file to keep your data safe
+function exportBackup() {
+  const backup = {
+    version: 1,
+    exportedAt: new Date().toISOString(),
+    pipeline: data,
+    watchlist: watchlist
+  };
+  const blob = new Blob([JSON.stringify(backup, null, 2)], { type: 'application/json' });
+  const a = document.createElement('a');
+  a.href = URL.createObjectURL(blob);
+  a.download = `job-pipeline-backup_${today()}.json`;
+  a.click();
+  URL.revokeObjectURL(a.href);
+}
+
+function importBackup(ev) {
+  const file = ev.target.files?.[0];
+  if (!file) return;
+  const reader = new FileReader();
+  reader.onload = async () => {
+    try {
+      const backup = JSON.parse(reader.result);
+      const pipeline = Array.isArray(backup.pipeline) ? backup.pipeline : [];
+      const watch = Array.isArray(backup.watchlist) ? backup.watchlist : [];
+      if (!pipeline.length && !watch.length && (backup.pipeline !== undefined || backup.watchlist !== undefined)) {
+        if (!confirm('This backup has no pipeline or watchlist data. Replace current data with empty?')) { ev.target.value = ''; return; }
+      } else if (!confirm(`Restore backup from ${backup.exportedAt ? new Date(backup.exportedAt).toLocaleString() : 'unknown date'}? This will replace your current data.`)) {
+        ev.target.value = '';
+        return;
+      }
+      data = pipeline;
+      watchlist = watch;
+      selectedId = null;
+      await save();
+      await saveWatch2();
+      renderAll();
+      ev.target.value = '';
+    } catch (e) {
+      alert('Invalid backup file. ' + (e.message || ''));
+      ev.target.value = '';
+    }
+  };
+  reader.readAsText(file);
+}
+
 // ── WATCHLIST ──
-let watchlist = JSON.parse(localStorage.getItem('jpt3_watch') || '[]');
 let editingWatchId = null;
-const saveWatch2 = () => localStorage.setItem('jpt3_watch', JSON.stringify(watchlist));
 
 function switchView(view) {
   document.getElementById('view-pipeline').style.display = view==='pipeline' ? '' : 'none';
@@ -810,7 +878,29 @@ document.addEventListener('keydown', e => {
   }
 });
 
-renderAll();
+async function init() {
+  if (useSupabase && supabase) {
+    try {
+      const [p, w] = await Promise.all([
+        supabase.from('app_data').select('value').eq('key','pipeline').maybeSingle(),
+        supabase.from('app_data').select('value').eq('key','watchlist').maybeSingle()
+      ]);
+      data = (p?.data?.value && Array.isArray(p.data.value)) ? p.data.value : [];
+      watchlist = (w?.data?.value && Array.isArray(w.data.value)) ? w.data.value : [];
+      localStorage.setItem('jpt3', JSON.stringify(data));
+      localStorage.setItem('jpt3_watch', JSON.stringify(watchlist));
+    } catch (e) {
+      console.warn('Supabase load failed', e);
+      data = JSON.parse(localStorage.getItem('jpt3') || '[]');
+      watchlist = JSON.parse(localStorage.getItem('jpt3_watch') || '[]');
+    }
+  } else {
+    data = JSON.parse(localStorage.getItem('jpt3') || '[]');
+    watchlist = JSON.parse(localStorage.getItem('jpt3_watch') || '[]');
+  }
+  renderAll();
+}
+init();
 </script>
 </body>
 </html>

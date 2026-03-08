@@ -1,0 +1,19 @@
+# OS
+.DS_Store
+Thumbs.db
+
+# Editor
+.vscode/
+.idea/
+*.swp
+*.swo
+*~
+
+# Local / env (if you add a server later)
+.env
+.env.local
+node_modules/
+*.log
+
+# User backups (optional: ignore so backups aren’t committed)
+# *.json

@@ -83,8 +83,9 @@ header {
 /* DASHBOARD TOP BAR */
 .dashboard-bar { display: flex; align-items: center; gap: 20px; padding: 14px 20px; border-bottom: 1px solid var(--border); background: linear-gradient(180deg, var(--s1) 0%, var(--s2) 100%); overflow-x: auto; }
 .dashboard-donut-wrap { flex-shrink: 0; }
-.dashboard-donut { position: relative; width: 56px; height: 56px; border-radius: 50%; background: var(--border2); }
-.dashboard-donut::after { content: ''; position: absolute; inset: 10px; border-radius: 50%; background: var(--s1); }
+.dashboard-donut { position: relative; width: 56px; height: 56px; border-radius: 50%; background: var(--border2); display: flex; align-items: center; justify-content: center; }
+.dashboard-donut::after { content: ''; position: absolute; inset: 10px; border-radius: 50%; background: var(--s1); pointer-events: none; }
+.donut-center { position: relative; z-index: 1; font-family: 'JetBrains Mono', monospace; font-size: 12px; font-weight: 700; color: var(--text); }
 .dashboard-stats { display: flex; align-items: center; gap: 16px; flex-wrap: wrap; }
 .dash-stat { display: flex; align-items: baseline; gap: 6px; padding: 6px 12px; background: var(--s3); border: 1px solid var(--border); border-radius: 6px; }
 .dash-stat-n { font-family: 'JetBrains Mono', monospace; font-size: 18px; font-weight: 700; line-height: 1; }
@@ -596,10 +597,15 @@ function renderSummary() {
 
   var donutEl=document.getElementById('dashboardDonut');
   if(donutEl){
-    if(total===0){ donutEl.style.background='var(--border2)'; }
-    else {
+    if(total===0){
+      donutEl.style.background='var(--border2)';
+      donutEl.setAttribute('title','0 applications');
+      donutEl.innerHTML='<span class="donut-center">0</span>';
+    } else {
       var aDeg=(active/total)*360, rDeg=(rejected/total)*360, gDeg=(accepted/total)*360;
       donutEl.style.background=`conic-gradient(var(--blue) 0deg ${aDeg}deg, var(--red) ${aDeg}deg ${aDeg+rDeg}deg, var(--gold) ${aDeg+rDeg}deg 360deg)`;
+      donutEl.setAttribute('title',`${active} in progress · ${rejected} rejected · ${accepted} accepted`);
+      donutEl.innerHTML='<span class="donut-center">'+total+'</span>';
     }
   }
   var ds=document.getElementById('dashboardStats');
@@ -828,6 +834,8 @@ function switchView(view) {
   document.getElementById('view-watchlist').style.display = view==='watchlist' ? '' : 'none';
   document.getElementById('tab-pipeline').classList.toggle('active', view==='pipeline');
   document.getElementById('tab-watchlist').classList.toggle('active', view==='watchlist');
+  renderSummary();
+  updateBadges();
   if(view==='watchlist') renderWatchlist();
   if(view==='pipeline') {
     renderSidebar();

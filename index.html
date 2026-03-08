@@ -479,6 +479,7 @@ function saveCompany() {
     watchlist = watchlist.filter(w=>w.id!==window._promoteFromWatchId);
     saveWatch2(); window._promoteFromWatchId = null;
   }
+  if (!editingId) switchView('pipeline');
   renderAll();
 }
 

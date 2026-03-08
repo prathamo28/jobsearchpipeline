@@ -32,6 +32,27 @@ No build step or server is required for basic use.
 
 Your app will be at `https://your-project-name.vercel.app`. Data is stored in Supabase and stays the same on any device.
 
+### How to check if Vercel, GitHub, and Supabase are synced
+
+1. **In the app (Vercel URL)**  
+   - Open your deployed app (e.g. `https://your-project.vercel.app`).  
+   - Next to the logo you’ll see either **“Synced to Supabase”** or **“This device only”**.  
+   - **“Synced to Supabase”** = the app is using your Supabase project; data is saved to the database and will persist after refresh and on other devices.  
+   - **“This device only”** = no Supabase config (or it failed); data is only in the browser and will be lost if you clear site data or use another device.
+
+2. **Vercel**  
+   - Vercel dashboard → your project → **Settings** → **Environment Variables**: you should see `SUPABASE_URL` and `SUPABASE_ANON`.  
+   - **Deployments**: each push to GitHub should create a new deployment. If not, check **Settings** → **Git** and confirm the repo is connected.
+
+3. **Supabase (is data in the database?)**  
+   - [Supabase Dashboard](https://supabase.com/dashboard) → your project → **Table Editor**.  
+   - Open the **app_data** table.  
+   - You should see rows with `key` = `pipeline` and `key` = `watchlist`.  
+   - After you add companies in the app and refresh, the `value` column (JSON) should contain your pipeline/watchlist data. If it stays empty, the app is not connected (check Vercel env vars and redeploy).
+
+4. **GitHub**  
+   - Your repo should show the latest code. After you push, Vercel will build and deploy from that repo.
+
 ## Optional: Supabase (cloud database)
 
 To store data in the cloud so it’s the same on any device:

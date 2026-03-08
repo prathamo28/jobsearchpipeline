@@ -63,6 +63,7 @@ header {
 }
 .logo { font-family: 'JetBrains Mono', monospace; font-size: 12px; color: var(--accent); display: flex; align-items: center; gap: 8px; }
 .logo-dot { width: 7px; height: 7px; border-radius: 50%; background: var(--accent); animation: blink 1.8s ease infinite; }
+.data-source { font-size: 9px; color: var(--muted); font-weight: 400; margin-left: 6px; }
 @keyframes blink { 0%,100%{opacity:1} 50%{opacity:.2} }
 .hdr-right { display: flex; gap: 8px; }
 
@@ -231,7 +232,7 @@ textarea { resize: vertical; min-height: 70px; }
 <div class="wrap">
 
 <header>
-  <div class="logo"><div class="logo-dot"></div>PIPELINE_TRACKER</div>
+  <div class="logo"><div class="logo-dot"></div>PIPELINE_TRACKER <span id="dataSourceLabel" class="data-source" title="Shows whether data is stored only in this browser or synced to Supabase.">—</span></div>
   <div class="hdr-right">
     <input type="file" id="backupFileInput" accept=".json,application/json" style="display:none" onchange="importBackup(event)">
     <button class="btn" onclick="exportData()">↓ CSV</button>
@@ -888,25 +889,43 @@ document.addEventListener('keydown', e => {
   }
 });
 
+function setDataSourceLabel(supabaseActive) {
+  var el = document.getElementById('dataSourceLabel');
+  if (el) el.textContent = supabaseActive ? 'Synced to Supabase' : 'This device only';
+}
+
 async function init() {
+  var fromLocalPipeline = JSON.parse(localStorage.getItem('jpt3') || '[]');
+  var fromLocalWatch = JSON.parse(localStorage.getItem('jpt3_watch') || '[]');
   if (useSupabase && supabase) {
     try {
       const [p, w] = await Promise.all([
         supabase.from('app_data').select('value').eq('key','pipeline').maybeSingle(),
         supabase.from('app_data').select('value').eq('key','watchlist').maybeSingle()
       ]);
-      data = (p?.data?.value && Array.isArray(p.data.value)) ? p.data.value : [];
-      watchlist = (w?.data?.value && Array.isArray(w.data.value)) ? w.data.value : [];
-      localStorage.setItem('jpt3', JSON.stringify(data));
-      localStorage.setItem('jpt3_watch', JSON.stringify(watchlist));
+      var fromSupabasePipeline = (p?.data?.value && Array.isArray(p.data.value)) ? p.data.value : [];
+      var fromSupabaseWatch = (w?.data?.value && Array.isArray(w.data.value)) ? w.data.value : [];
+      if (fromSupabasePipeline.length > 0 || fromSupabaseWatch.length > 0) {
+        data = fromSupabasePipeline;
+        watchlist = fromSupabaseWatch;
+      } else {
+        data = fromLocalPipeline;
+        watchlist = fromLocalWatch;
+        localStorage.setItem('jpt3', JSON.stringify(data));
+        localStorage.setItem('jpt3_watch', JSON.stringify(watchlist));
+        await save(); await saveWatch2();
+      }
+      setDataSourceLabel(true);
     } catch (e) {
       console.warn('Supabase load failed', e);
-      data = JSON.parse(localStorage.getItem('jpt3') || '[]');
-      watchlist = JSON.parse(localStorage.getItem('jpt3_watch') || '[]');
+      data = fromLocalPipeline;
+      watchlist = fromLocalWatch;
+      setDataSourceLabel(false);
     }
   } else {
-    data = JSON.parse(localStorage.getItem('jpt3') || '[]');
-    watchlist = JSON.parse(localStorage.getItem('jpt3_watch') || '[]');
+    data = fromLocalPipeline;
+    watchlist = fromLocalWatch;
+    setDataSourceLabel(false);
   }
   if (data.length && !selectedId) selectedId = data[0].id;
   renderAll();

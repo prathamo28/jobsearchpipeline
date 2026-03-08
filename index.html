@@ -237,7 +237,7 @@ textarea { resize: vertical; min-height: 70px; }
     <button class="btn" onclick="exportData()">↓ CSV</button>
     <button class="btn" onclick="exportBackup()">↓ BACKUP</button>
     <button class="btn" onclick="document.getElementById('backupFileInput').click()">↑ RESTORE</button>
-    <button class="btn btn-green" onclick="openAddCompany()">+ ADD COMPANY</button>
+    <button type="button" class="btn btn-green" onclick="openAddCompany()">+ ADD COMPANY</button>
   </div>
 </header>
 
@@ -397,8 +397,16 @@ const SCOL = {'Applied':'var(--c-apply)','HR':'var(--c-hr)','Tech 1':'var(--c-t1
 // Supabase: from config.js (Vercel build) or empty = localStorage only
 const SUPABASE_URL = (typeof window !== 'undefined' && window.SUPABASE_URL) || '';
 const SUPABASE_ANON = (typeof window !== 'undefined' && window.SUPABASE_ANON) || '';
-const useSupabase = !!(SUPABASE_URL && SUPABASE_ANON);
-const supabase = useSupabase ? window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON) : null;
+let useSupabase = !!(SUPABASE_URL && SUPABASE_ANON);
+let supabase = null;
+if (useSupabase && typeof window.supabase !== 'undefined') {
+  try {
+    supabase = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON);
+  } catch (e) {
+    console.warn('Supabase init failed, using localStorage', e);
+    useSupabase = false;
+  }
+}
 
 let data = [];
 let watchlist = [];

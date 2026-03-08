@@ -1,0 +1,816 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>JOB PIPELINE TRACKER</title>
+<link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@300;400;500;700&family=Syne:wght@400;600;700;800&display=swap" rel="stylesheet">
+<style>
+:root {
+  --bg: #080810;
+  --s1: #0e0e1a;
+  --s2: #141422;
+  --s3: #1c1c2e;
+  --border: #252538;
+  --border2: #2e2e48;
+  --text: #dcdcf0;
+  --muted: #5a5a7a;
+  --muted2: #8080a0;
+  --accent: #4af0b0;
+  --accent-dim: rgba(74,240,176,0.12);
+  --blue: #5eaeff;
+  --blue-dim: rgba(94,174,255,0.12);
+  --red: #ff5370;
+  --red-dim: rgba(255,83,112,0.12);
+  --gold: #ffd700;
+  --gold-dim: rgba(255,215,0,0.1);
+  --orange: #ff9f43;
+  --orange-dim: rgba(255,159,67,0.12);
+  --c-apply: #5eaeff;
+  --c-hr: #a78bfa;
+  --c-t1: #38bdf8;
+  --c-t2: #22d3ee;
+  --c-ceo: #f59e0b;
+  --c-offer: #4af0b0;
+  --c-accepted: #ffd700;
+  --c-rejected: #ff5370;
+}
+* { box-sizing: border-box; margin: 0; padding: 0; }
+body {
+  font-family: 'Syne', sans-serif;
+  background: var(--bg);
+  color: var(--text);
+  min-height: 100vh;
+}
+body::before {
+  content: '';
+  position: fixed; inset: 0;
+  background-image: radial-gradient(circle, rgba(74,240,176,0.05) 1px, transparent 1px);
+  background-size: 28px 28px;
+  pointer-events: none; z-index: 0;
+}
+.wrap { position: relative; z-index: 1; }
+
+/* HEADER */
+header {
+  background: rgba(8,8,16,0.96);
+  border-bottom: 1px solid var(--border);
+  backdrop-filter: blur(12px);
+  position: sticky; top: 0; z-index: 200;
+  padding: 0 24px;
+  display: flex; align-items: center; justify-content: space-between;
+  height: 52px;
+}
+.logo { font-family: 'JetBrains Mono', monospace; font-size: 12px; color: var(--accent); display: flex; align-items: center; gap: 8px; }
+.logo-dot { width: 7px; height: 7px; border-radius: 50%; background: var(--accent); animation: blink 1.8s ease infinite; }
+@keyframes blink { 0%,100%{opacity:1} 50%{opacity:.2} }
+.hdr-right { display: flex; gap: 8px; }
+
+/* BUTTONS */
+.btn { font-family: 'JetBrains Mono', monospace; font-size: 11px; padding: 7px 14px; border: 1px solid var(--border2); background: transparent; color: var(--muted2); cursor: pointer; transition: all .15s; letter-spacing: .04em; white-space: nowrap; }
+.btn:hover { border-color: var(--accent); color: var(--accent); }
+.btn-green { background: var(--accent); border-color: var(--accent); color: var(--bg); font-weight: 700; }
+.btn-green:hover { background: #6fffc4; border-color: #6fffc4; color: var(--bg); }
+.btn-red { border-color: var(--red); color: var(--red); }
+.btn-red:hover { background: var(--red); color: white; }
+.btn-xs { padding: 4px 10px; font-size: 10px; }
+
+/* SUMMARY */
+.summary-bar { display: flex; border-bottom: 1px solid var(--border); background: var(--s1); overflow-x: auto; }
+.sum-cell { flex: 1; min-width: 90px; padding: 10px 14px; border-right: 1px solid var(--border); text-align: center; }
+.sum-cell:last-child { border-right: none; }
+.sum-n { font-family: 'JetBrains Mono', monospace; font-size: 20px; font-weight: 700; line-height: 1; }
+.sum-l { font-size: 9px; letter-spacing: .12em; text-transform: uppercase; color: var(--muted); margin-top: 3px; }
+
+/* LAYOUT */
+.layout { display: flex; height: calc(100vh - 52px - 44px); }
+
+/* SIDEBAR */
+.sidebar { width: 280px; min-width: 280px; border-right: 1px solid var(--border); background: var(--s1); display: flex; flex-direction: column; overflow: hidden; }
+.sidebar-top { padding: 12px; border-bottom: 1px solid var(--border); display: flex; flex-direction: column; gap: 8px; }
+.search { background: var(--s2); border: 1px solid var(--border); color: var(--text); padding: 7px 11px; font-family: 'JetBrains Mono', monospace; font-size: 11px; outline: none; width: 100%; transition: border-color .2s; }
+.search:focus { border-color: var(--accent); }
+.search::placeholder { color: var(--muted); }
+.filter-row { display: flex; gap: 6px; }
+.fsel { flex: 1; background: var(--s2); border: 1px solid var(--border); color: var(--muted2); padding: 5px 7px; font-family: 'JetBrains Mono', monospace; font-size: 10px; outline: none; cursor: pointer; }
+.fsel option { background: var(--s2); }
+.company-list { flex: 1; overflow-y: auto; padding: 6px; }
+.company-row { padding: 11px 12px; border: 1px solid transparent; cursor: pointer; transition: all .15s; margin-bottom: 3px; }
+.company-row:hover { background: var(--s2); border-color: var(--border); }
+.company-row.active { background: var(--s2); border-color: var(--accent); }
+.cr-name { font-size: 14px; font-weight: 700; }
+.cr-sub { font-size: 11px; color: var(--muted2); margin-top: 1px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.cr-bottom { display: flex; align-items: center; gap: 6px; margin-top: 5px; }
+.cr-dot { width: 6px; height: 6px; border-radius: 50%; flex-shrink: 0; }
+
+/* DETAIL */
+.detail { flex: 1; overflow-y: auto; padding: 22px 26px; }
+.empty-detail { display: flex; flex-direction: column; align-items: center; justify-content: center; height: 100%; color: var(--muted); gap: 10px; }
+.empty-icon { font-size: 42px; opacity: .25; }
+.empty-text { font-family: 'JetBrains Mono', monospace; font-size: 11px; letter-spacing: .1em; }
+
+/* COMPANY HEADER */
+.det-header { display: flex; align-items: flex-start; justify-content: space-between; margin-bottom: 22px; flex-wrap: wrap; gap: 10px; }
+.det-name { font-size: 30px; font-weight: 800; letter-spacing: -.01em; }
+.det-meta { font-size: 13px; color: var(--muted2); margin-top: 2px; }
+.det-actions { display: flex; gap: 7px; flex-wrap: wrap; }
+
+/* SECTION */
+.sec-title { font-family: 'JetBrains Mono', monospace; font-size: 9px; letter-spacing: .18em; text-transform: uppercase; color: var(--accent); border-bottom: 1px solid var(--border); padding-bottom: 7px; margin-bottom: 12px; }
+
+/* ATTEMPT CARD */
+.attempt-card { background: var(--s1); border: 1px solid var(--border); margin-bottom: 18px; overflow: hidden; }
+.attempt-card.current { border-color: var(--accent); }
+.attempt-card.rejected-card { border-color: rgba(255,83,112,.4); }
+.attempt-header { display: flex; align-items: center; justify-content: space-between; padding: 11px 14px; border-bottom: 1px solid var(--border); background: var(--s2); gap: 10px; flex-wrap: wrap; }
+.att-label { font-family: 'JetBrains Mono', monospace; font-size: 11px; color: var(--muted2); }
+.att-date { font-family: 'JetBrains Mono', monospace; font-size: 9px; color: var(--muted); margin-top: 2px; }
+.att-btns { display: flex; gap: 6px; flex-wrap: wrap; align-items: center; }
+
+/* PIPELINE FLOW */
+.pipeline-flow { padding: 18px 14px 12px; overflow-x: auto; }
+.flow-stages { display: flex; align-items: center; min-width: max-content; }
+.flow-stage { display: flex; flex-direction: column; align-items: center; }
+.flow-connector { width: 28px; height: 2px; background: var(--border2); flex-shrink: 0; align-self: center; margin-bottom: 42px; }
+.flow-connector.done { background: var(--accent); }
+.flow-connector.rejected-line { background: var(--red); }
+.stage-node { display: flex; flex-direction: column; align-items: center; gap: 5px; width: 82px; }
+.stage-bubble { width: 38px; height: 38px; border-radius: 50%; border: 2px solid var(--border2); background: var(--s2); display: flex; align-items: center; justify-content: center; font-family: 'JetBrains Mono', monospace; font-size: 9px; font-weight: 700; transition: all .2s; }
+.stage-bubble.done { border-color: var(--accent); background: var(--accent-dim); color: var(--accent); }
+.stage-bubble.current-stage { border-color: var(--blue); background: var(--blue-dim); color: var(--blue); animation: pulse-ring 2s infinite; }
+@keyframes pulse-ring { 0%,100%{box-shadow:0 0 8px rgba(94,174,255,.3)} 50%{box-shadow:0 0 18px rgba(94,174,255,.5)} }
+.stage-bubble.rejected-stage { border-color: var(--red); background: var(--red-dim); color: var(--red); }
+.stage-bubble.accepted-stage { border-color: var(--gold); background: var(--gold-dim); color: var(--gold); box-shadow: 0 0 12px rgba(255,215,0,.3); }
+.stage-bubble.pending { border-color: var(--border2); color: var(--muted); }
+.stage-name { font-size: 10px; text-align: center; color: var(--muted); line-height: 1.3; }
+.stage-name.active { color: var(--text); font-weight: 600; }
+
+/* REJECTION BADGE */
+.rej-badge { display: inline-flex; align-items: center; gap: 6px; background: var(--red-dim); border: 1px solid var(--red); color: var(--red); font-family: 'JetBrains Mono', monospace; font-size: 10px; padding: 4px 12px; margin: 0 14px 6px; }
+
+/* STAGE LOG */
+.stage-log { padding: 0 14px 12px; }
+.stage-log-title { font-family: 'JetBrains Mono', monospace; font-size: 9px; color: var(--muted); letter-spacing: .1em; text-transform: uppercase; margin-bottom: 7px; }
+.stage-chips { display: flex; flex-wrap: wrap; gap: 5px; }
+.stage-chip { font-family: 'JetBrains Mono', monospace; font-size: 9px; background: var(--s3); border: 1px solid var(--border); padding: 3px 9px; }
+
+/* COMMENTS */
+.comments-section { padding: 10px 14px 14px; border-top: 1px solid var(--border); }
+.comments-title { font-family: 'JetBrains Mono', monospace; font-size: 9px; color: var(--muted); letter-spacing: .1em; text-transform: uppercase; margin-bottom: 8px; }
+.comment-thread { display: flex; flex-direction: column; gap: 6px; margin-bottom: 10px; }
+.comment { background: var(--s3); border-left: 2px solid var(--border2); padding: 7px 11px; }
+.comment-meta { font-family: 'JetBrains Mono', monospace; font-size: 9px; color: var(--muted); margin-bottom: 3px; display: flex; justify-content: space-between; align-items: center; }
+.comment-text { font-size: 13px; color: var(--text); line-height: 1.5; }
+.comment-del { background: none; border: none; color: var(--muted); cursor: pointer; font-size: 11px; transition: color .15s; padding: 0 2px; }
+.comment-del:hover { color: var(--red); }
+.add-comment { display: flex; gap: 7px; }
+.comment-input { flex: 1; background: var(--s2); border: 1px solid var(--border); color: var(--text); padding: 7px 11px; font-family: 'Syne', sans-serif; font-size: 13px; outline: none; resize: none; transition: border-color .2s; }
+.comment-input:focus { border-color: var(--accent); }
+.comment-input::placeholder { color: var(--muted); }
+
+/* MODAL */
+.overlay { position: fixed; inset: 0; background: rgba(0,0,0,.82); backdrop-filter: blur(6px); z-index: 500; display: flex; align-items: center; justify-content: center; padding: 20px; opacity: 0; pointer-events: none; transition: opacity .2s; }
+.overlay.open { opacity: 1; pointer-events: all; }
+.modal { background: var(--s1); border: 1px solid var(--border2); border-top: 2px solid var(--accent); width: 100%; max-width: 480px; max-height: 90vh; overflow-y: auto; transform: translateY(14px); transition: transform .2s; }
+.overlay.open .modal { transform: translateY(0); }
+.modal-hdr { display: flex; justify-content: space-between; align-items: center; padding: 14px 18px; border-bottom: 1px solid var(--border); }
+.modal-title { font-family: 'JetBrains Mono', monospace; font-size: 11px; color: var(--accent); letter-spacing: .1em; text-transform: uppercase; }
+.modal-body { padding: 18px; display: flex; flex-direction: column; gap: 13px; }
+.modal-foot { display: flex; justify-content: flex-end; gap: 7px; padding: 13px 18px; border-top: 1px solid var(--border); }
+.fg { display: flex; flex-direction: column; gap: 5px; }
+label { font-family: 'JetBrains Mono', monospace; font-size: 9px; color: var(--muted); letter-spacing: .1em; text-transform: uppercase; }
+input, select, textarea { background: var(--bg); border: 1px solid var(--border); color: var(--text); padding: 8px 11px; font-family: 'Syne', sans-serif; font-size: 14px; outline: none; transition: border-color .2s; width: 100%; }
+input:focus, select:focus, textarea:focus { border-color: var(--accent); }
+select option { background: var(--bg); }
+textarea { resize: vertical; min-height: 70px; }
+
+/* REJECT OPTIONS */
+.rej-options { display: flex; flex-direction: column; gap: 7px; }
+.rej-opt { display: flex; align-items: center; gap: 10px; padding: 11px 13px; border: 1px solid var(--border); cursor: pointer; transition: all .15s; }
+.rej-opt:hover { border-color: var(--red); background: var(--red-dim); }
+.rej-opt.selected { border-color: var(--red); background: var(--red-dim); }
+.rej-opt-label { font-size: 13px; font-weight: 600; }
+.rej-opt-desc { font-size: 11px; color: var(--muted2); margin-top: 1px; }
+.rej-radio { width: 14px; height: 14px; border-radius: 50%; border: 2px solid var(--border); flex-shrink: 0; transition: all .15s; }
+.rej-opt.selected .rej-radio { border-color: var(--red); background: var(--red); }
+
+/* TABS */
+.view-tabs { display: flex; border-bottom: 1px solid var(--border); background: var(--s1); }
+.view-tab { font-family: 'JetBrains Mono', monospace; font-size: 11px; padding: 10px 20px; background: none; border: none; border-bottom: 2px solid transparent; color: var(--muted); cursor: pointer; transition: all .15s; letter-spacing: .06em; margin-bottom: -1px; }
+.view-tab:hover { color: var(--text); }
+.view-tab.active { color: var(--accent); border-bottom-color: var(--accent); }
+.tab-badge { display: inline-block; background: var(--s3); border: 1px solid var(--border); font-size: 9px; padding: 1px 6px; margin-left: 5px; border-radius: 2px; }
+
+/* WATCHLIST */
+.watchlist-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(260px, 1fr)); gap: 12px; padding: 22px 26px; }
+.watch-card { background: var(--s1); border: 1px solid var(--border); border-top: 2px solid var(--border2); padding: 16px; transition: all .15s; }
+.watch-card:hover { border-color: var(--border2); border-top-color: var(--orange); }
+.watch-card-name { font-size: 18px; font-weight: 800; }
+.watch-card-role { font-size: 12px; color: var(--muted2); margin-top: 3px; }
+.watch-card-tags { display: flex; flex-wrap: wrap; gap: 5px; margin-top: 10px; }
+.watch-tag { font-family: 'JetBrains Mono', monospace; font-size: 9px; background: var(--s3); border: 1px solid var(--border); padding: 2px 8px; color: var(--muted2); }
+.watch-tag.priority-high { border-color: var(--red); color: var(--red); }
+.watch-tag.priority-med { border-color: var(--orange); color: var(--orange); }
+.watch-tag.priority-low { border-color: var(--muted); color: var(--muted); }
+.watch-card-note { font-size: 12px; color: var(--muted2); margin-top: 10px; line-height: 1.5; border-left: 2px solid var(--border); padding-left: 8px; font-style: italic; }
+.watch-card-actions { display: flex; gap: 6px; margin-top: 12px; flex-wrap: wrap; }
+.btn-orange { border-color: var(--orange); color: var(--orange); }
+.btn-orange:hover { background: var(--orange); color: var(--bg); }
+
+::-webkit-scrollbar { width: 4px; height: 4px; }
+::-webkit-scrollbar-track { background: var(--bg); }
+::-webkit-scrollbar-thumb { background: var(--border2); }
+
+@media (max-width: 700px) {
+  .layout { flex-direction: column; height: auto; }
+  .sidebar { width: 100%; min-width: 0; border-right: none; border-bottom: 1px solid var(--border); max-height: 45vh; }
+}
+</style>
+</head>
+<body>
+<div class="wrap">
+
+<header>
+  <div class="logo"><div class="logo-dot"></div>PIPELINE_TRACKER</div>
+  <div class="hdr-right">
+    <button class="btn" onclick="exportData()">↓ EXPORT CSV</button>
+    <button class="btn btn-green" onclick="openAddCompany()">+ ADD COMPANY</button>
+  </div>
+</header>
+
+<div class="summary-bar" id="summaryBar"></div>
+
+<!-- VIEW TABS -->
+<div class="view-tabs">
+  <button class="view-tab active" id="tab-pipeline" onclick="switchView('pipeline')">PIPELINE <span class="tab-badge" id="badge-pipeline">0</span></button>
+  <button class="view-tab" id="tab-watchlist" onclick="switchView('watchlist')">WATCHLIST <span class="tab-badge" id="badge-watchlist">0</span></button>
+</div>
+
+<div id="view-pipeline">
+<div class="layout">
+  <div class="sidebar">
+    <div class="sidebar-top">
+      <input class="search" id="sideSearch" type="text" placeholder="search company or role..." oninput="renderSidebar()">
+      <div class="filter-row">
+        <select class="fsel" id="stageFilter" onchange="renderSidebar()">
+          <option value="">All stages</option>
+          <option>Applied</option><option>HR</option><option>Tech 1</option>
+          <option>Tech 2</option><option>CEO</option><option>Offer</option>
+          <option>Accepted</option><option>Rejected</option>
+        </select>
+        <select class="fsel" id="statusFilter" onchange="renderSidebar()">
+          <option value="">All</option>
+          <option value="active">Active</option>
+          <option value="rejected">Rejected</option>
+          <option value="accepted">Accepted</option>
+        </select>
+      </div>
+    </div>
+    <div class="company-list" id="companyList"></div>
+  </div>
+
+  <div class="detail" id="detailPanel">
+    <div class="empty-detail">
+      <div class="empty-icon">◈</div>
+      <div class="empty-text">SELECT A COMPANY TO VIEW PIPELINE</div>
+    </div>
+  </div>
+</div>
+</div>
+</div>
+
+<!-- WATCHLIST VIEW -->
+<div id="view-watchlist" style="display:none">
+  <div style="display:flex;justify-content:space-between;align-items:center;padding:16px 26px;border-bottom:1px solid var(--border);background:var(--s1)">
+    <div>
+      <input class="search" id="watchSearch" type="text" placeholder="search watchlist..." oninput="renderWatchlist()" style="width:220px">
+    </div>
+    <div style="display:flex;gap:8px;align-items:center">
+      <select class="fsel" id="watchPriority" onchange="renderWatchlist()" style="width:130px">
+        <option value="">All priorities</option>
+        <option value="High">High</option>
+        <option value="Medium">Medium</option>
+        <option value="Low">Low</option>
+      </select>
+      <button class="btn btn-orange" onclick="openAddWatch()">+ ADD TO WATCHLIST</button>
+    </div>
+  </div>
+  <div class="watchlist-grid" id="watchlistGrid"></div>
+</div>
+
+<!-- WATCHLIST MODAL -->
+<div class="overlay" id="watchModal">
+  <div class="modal">
+    <div class="modal-hdr">
+      <span class="modal-title" id="watchModalTitle">ADD TO WATCHLIST</span>
+      <button class="btn btn-xs" onclick="closeModal('watchModal')">✕</button>
+    </div>
+    <div class="modal-body">
+      <div class="fg"><label>Company Name *</label><input id="w_company" type="text" placeholder="e.g. Google, Cloudflare, HashiCorp"></div>
+      <div class="fg"><label>Role / Type of opening to watch</label><input id="w_role" type="text" placeholder="e.g. Senior SRE, Cloud Security Engineer"></div>
+      <div class="fg"><label>Company Website / Careers URL</label><input id="w_url" type="url" placeholder="https://careers.company.com"></div>
+      <div class="fg"><label>Priority</label>
+        <select id="w_priority">
+          <option value="High">🔴 High — dream company, apply ASAP</option>
+          <option value="Medium" selected>🟡 Medium — interesting, keep watching</option>
+          <option value="Low">⚪ Low — good to know</option>
+        </select>
+      </div>
+      <div class="fg"><label>Why interesting / Notes</label><textarea id="w_note" placeholder="Why you want to work here, what to prepare, who you know there..."></textarea></div>
+    </div>
+    <div class="modal-foot">
+      <button class="btn" onclick="closeModal('watchModal')">CANCEL</button>
+      <button class="btn btn-orange" onclick="saveWatch()">SAVE TO WATCHLIST</button>
+    </div>
+  </div>
+</div>
+<div class="overlay" id="companyModal">
+  <div class="modal">
+    <div class="modal-hdr">
+      <span class="modal-title" id="compModalTitle">ADD COMPANY</span>
+      <button class="btn btn-xs" onclick="closeModal('companyModal')">✕</button>
+    </div>
+    <div class="modal-body">
+      <div class="fg"><label>Company Name *</label><input id="m_company" type="text" placeholder="e.g. Nordea, EPAM, Vonage"></div>
+      <div class="fg"><label>Role / Position</label><input id="m_role" type="text" placeholder="e.g. Senior Cloud Engineer"></div>
+      <div class="fg"><label>Location</label><input id="m_location" type="text" placeholder="e.g. Warsaw / Remote / Gdańsk"></div>
+      <div class="fg"><label>Job URL</label><input id="m_url" type="url" placeholder="https://..."></div>
+      <div class="fg"><label>Date Applied</label><input id="m_date" type="date"></div>
+    </div>
+    <div class="modal-foot">
+      <button class="btn" onclick="closeModal('companyModal')">CANCEL</button>
+      <button class="btn btn-green" onclick="saveCompany()">SAVE</button>
+    </div>
+  </div>
+</div>
+
+<!-- REJECT MODAL -->
+<div class="overlay" id="rejectModal">
+  <div class="modal">
+    <div class="modal-hdr">
+      <span class="modal-title" id="rejModalTitle">REJECTION</span>
+      <button class="btn btn-xs" onclick="closeModal('rejectModal')">✕</button>
+    </div>
+    <div class="modal-body">
+      <div style="font-size:13px;color:var(--muted2)">Select rejection type:</div>
+      <div class="rej-options">
+        <div class="rej-opt" onclick="selectRej('ATS')" id="rej-ATS">
+          <div class="rej-radio"></div>
+          <div><div class="rej-opt-label">🤖 ATS Rejection</div><div class="rej-opt-desc">Filtered by system before any human review</div></div>
+        </div>
+        <div class="rej-opt" onclick="selectRej('HR')" id="rej-HR">
+          <div class="rej-radio"></div>
+          <div><div class="rej-opt-label">👤 HR Rejection</div><div class="rej-opt-desc">Rejected by recruiter / HR after CV review</div></div>
+        </div>
+        <div class="rej-opt" onclick="selectRej('Technical')" id="rej-Technical">
+          <div class="rej-radio"></div>
+          <div><div class="rej-opt-label">⚙️ Technical Rejection</div><div class="rej-opt-desc">Failed technical interview / coding round</div></div>
+        </div>
+        <div class="rej-opt" onclick="selectRej('Culture Fit')" id="rej-Culture Fit">
+          <div class="rej-radio"></div>
+          <div><div class="rej-opt-label">🤝 Culture / Fit</div><div class="rej-opt-desc">Rejected on soft skills or team alignment</div></div>
+        </div>
+        <div class="rej-opt" onclick="selectRej('No Feedback')" id="rej-No Feedback">
+          <div class="rej-radio"></div>
+          <div><div class="rej-opt-label">❓ No Feedback</div><div class="rej-opt-desc">Ghosted or rejected without reason given</div></div>
+        </div>
+      </div>
+      <div class="fg"><label>Notes (optional)</label><textarea id="rejNote" placeholder="What feedback did you get? What to improve next time?"></textarea></div>
+    </div>
+    <div class="modal-foot">
+      <button class="btn" onclick="closeModal('rejectModal')">CANCEL</button>
+      <button class="btn btn-red" onclick="confirmReject()">CONFIRM REJECTION</button>
+    </div>
+  </div>
+</div>
+
+<script>
+const STAGES = ['Applied','HR','Tech 1','Tech 2','CEO','Offer','Accepted'];
+const ABBR = {'Applied':'APP','HR':'HR','Tech 1':'T-1','Tech 2':'T-2','CEO':'CEO','Offer':'OFR','Accepted':'✓'};
+const SCOL = {'Applied':'var(--c-apply)','HR':'var(--c-hr)','Tech 1':'var(--c-t1)','Tech 2':'var(--c-t2)','CEO':'var(--c-ceo)','Offer':'var(--c-offer)','Accepted':'var(--c-accepted)','Rejected':'var(--c-rejected)'};
+
+let data = JSON.parse(localStorage.getItem('jpt3') || '[]');
+let selectedId = null;
+let editingId = null;
+let rejectCtx = null;
+let selectedRejType = null;
+
+const save = () => localStorage.setItem('jpt3', JSON.stringify(data));
+const uid = () => Date.now().toString(36) + Math.random().toString(36).slice(2,6);
+const today = () => new Date().toISOString().split('T')[0];
+const fmt = d => d ? new Date(d).toLocaleDateString('en-GB',{day:'2-digit',month:'short',year:'numeric'}) : '—';
+const esc = s => String(s||'').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/\n/g,'<br>');
+const getC = id => data.find(c=>c.id===id);
+const lastAttempt = c => c.attempts[c.attempts.length-1];
+const activeStage = c => { const a=lastAttempt(c); return a?.rejected?'Rejected':(a?.currentStage||'—'); };
+
+// ── COMPANY OPS ──
+function openAddCompany() {
+  editingId = null;
+  document.getElementById('compModalTitle').textContent = 'ADD COMPANY';
+  ['m_company','m_role','m_location','m_url'].forEach(id=>document.getElementById(id).value='');
+  document.getElementById('m_date').value = today();
+  document.getElementById('companyModal').classList.add('open');
+}
+
+function openEditCompany(id) {
+  const c = getC(id); editingId = id;
+  document.getElementById('compModalTitle').textContent = 'EDIT COMPANY';
+  document.getElementById('m_company').value = c.name;
+  document.getElementById('m_role').value = c.role||'';
+  document.getElementById('m_location').value = c.location||'';
+  document.getElementById('m_url').value = c.url||'';
+  document.getElementById('m_date').value = c.attempts[0]?.startDate||today();
+  document.getElementById('companyModal').classList.add('open');
+}
+
+function saveCompany() {
+  const name = document.getElementById('m_company').value.trim();
+  if(!name){alert('Company name required');return;}
+  if(editingId) {
+    const c = getC(editingId);
+    Object.assign(c, {name, role:document.getElementById('m_role').value, location:document.getElementById('m_location').value, url:document.getElementById('m_url').value});
+  } else {
+    const dt = document.getElementById('m_date').value||today();
+    const company = {
+      id:uid(), name,
+      role:document.getElementById('m_role').value,
+      location:document.getElementById('m_location').value,
+      url:document.getElementById('m_url').value,
+      attempts:[{
+        id:uid(), startDate:dt, currentStage:'Applied',
+        stageHistory:[{stage:'Applied',date:dt}],
+        rejected:false, rejectionType:null, rejectionStage:null, rejectionNote:null,
+        comments:[]
+      }]
+    };
+    data.unshift(company);
+    selectedId = company.id;
+  }
+  save(); closeModal('companyModal');
+  if(window._promoteFromWatchId) {
+    watchlist = watchlist.filter(w=>w.id!==window._promoteFromWatchId);
+    saveWatch2(); window._promoteFromWatchId = null;
+  }
+  renderAll();
+}
+
+function deleteCompany(id) {
+  if(!confirm('Delete this company?')) return;
+  data = data.filter(c=>c.id!==id);
+  if(selectedId===id) selectedId=null;
+  save(); renderAll();
+}
+
+// ── STAGE OPS ──
+function advanceStage(cid) {
+  const c=getC(cid), a=lastAttempt(c);
+  if(a.rejected||a.currentStage==='Accepted') return;
+  const i=STAGES.indexOf(a.currentStage);
+  if(i<STAGES.length-1) {
+    a.currentStage=STAGES[i+1];
+    a.stageHistory.push({stage:a.currentStage,date:today()});
+    save(); renderAll();
+  }
+}
+
+function openReject(cid) {
+  const c=getC(cid), a=lastAttempt(c);
+  rejectCtx={cid, aid:a.id, stage:a.currentStage};
+  selectedRejType=null;
+  document.getElementById('rejModalTitle').textContent=`REJECTION AT — ${a.currentStage.toUpperCase()}`;
+  document.getElementById('rejNote').value='';
+  document.querySelectorAll('.rej-opt').forEach(e=>e.classList.remove('selected'));
+  document.getElementById('rejectModal').classList.add('open');
+}
+
+function selectRej(type) {
+  selectedRejType=type;
+  document.querySelectorAll('.rej-opt').forEach(e=>e.classList.remove('selected'));
+  document.getElementById('rej-'+type).classList.add('selected');
+}
+
+function confirmReject() {
+  if(!selectedRejType){alert('Select rejection type');return;}
+  const c=getC(rejectCtx.cid), a=lastAttempt(c);
+  Object.assign(a,{rejected:true, rejectionType:selectedRejType, rejectionStage:rejectCtx.stage, rejectionNote:document.getElementById('rejNote').value});
+  a.stageHistory.push({stage:'Rejected',date:today(),rejType:selectedRejType});
+  save(); closeModal('rejectModal'); renderAll();
+}
+
+function reapply(cid) {
+  const c=getC(cid);
+  c.attempts.push({id:uid(), startDate:today(), currentStage:'Applied', stageHistory:[{stage:'Applied',date:today()}], rejected:false, rejectionType:null, rejectionStage:null, rejectionNote:null, comments:[]});
+  save(); renderAll();
+}
+
+// ── COMMENTS ──
+function addComment(cid, aid) {
+  const el=document.getElementById('ci_'+aid), text=el.value.trim();
+  if(!text) return;
+  const c=getC(cid), a=c.attempts.find(x=>x.id===aid);
+  if(!a.comments) a.comments=[];
+  a.comments.push({id:uid(),text,date:today()});
+  el.value=''; save(); renderDetail(cid);
+}
+
+function deleteComment(cid, aid, cmid) {
+  const c=getC(cid), a=c.attempts.find(x=>x.id===aid);
+  a.comments=a.comments.filter(x=>x.id!==cmid);
+  save(); renderDetail(cid);
+}
+
+// ── RENDER ──
+function renderAll() { renderSummary(); renderSidebar(); if(selectedId) renderDetail(selectedId); }
+
+function renderSummary() {
+  const total=data.length;
+  const active=data.filter(c=>{const a=lastAttempt(c);return a&&!a.rejected&&a.currentStage!=='Accepted';}).length;
+  const accepted=data.filter(c=>{const a=lastAttempt(c);return a?.currentStage==='Accepted';}).length;
+  const rejected=data.filter(c=>{const a=lastAttempt(c);return a?.rejected;}).length;
+  const interviews=data.filter(c=>{const a=lastAttempt(c);return a&&!a.rejected&&['Tech 1','Tech 2','CEO'].includes(a.currentStage);}).length;
+  const offers=data.filter(c=>{const a=lastAttempt(c);return a&&!a.rejected&&['Offer','Accepted'].includes(a.currentStage);}).length;
+  document.getElementById('summaryBar').innerHTML=[
+    ['TOTAL',total,'var(--text)'],['ACTIVE',active,'var(--blue)'],
+    ['INTERVIEWS',interviews,'var(--c-t1)'],['OFFERS',offers,'var(--c-offer)'],
+    ['ACCEPTED',accepted,'var(--gold)'],['REJECTED',rejected,'var(--red)']
+  ].map(([l,n,col])=>`<div class="sum-cell"><div class="sum-n" style="color:${col}">${n}</div><div class="sum-l">${l}</div></div>`).join('');
+}
+
+function renderSidebar() {
+  const q=document.getElementById('sideSearch').value.toLowerCase();
+  const sf=document.getElementById('stageFilter').value;
+  const rf=document.getElementById('statusFilter').value;
+  const filtered=data.filter(c=>{
+    if(q&&!c.name.toLowerCase().includes(q)&&!(c.role||'').toLowerCase().includes(q)) return false;
+    const stage=activeStage(c);
+    if(sf&&stage!==sf) return false;
+    const a=lastAttempt(c);
+    if(rf==='active'&&(a?.rejected||a?.currentStage==='Accepted')) return false;
+    if(rf==='rejected'&&!a?.rejected) return false;
+    if(rf==='accepted'&&a?.currentStage!=='Accepted') return false;
+    return true;
+  });
+  const el=document.getElementById('companyList');
+  if(!filtered.length){el.innerHTML=`<div style="padding:24px;text-align:center;color:var(--muted);font-family:JetBrains Mono,monospace;font-size:10px">NO RESULTS</div>`;return;}
+  el.innerHTML=filtered.map(c=>{
+    const stage=activeStage(c), col=SCOL[stage]||'var(--muted)';
+    const att=c.attempts.length;
+    return `<div class="company-row ${selectedId===c.id?'active':''}" onclick="selectCompany('${c.id}')">
+      <div style="display:flex;justify-content:space-between;align-items:center">
+        <div class="cr-name">${c.name}</div>
+        ${att>1?`<span style="font-family:JetBrains Mono,monospace;font-size:9px;color:var(--muted);background:var(--s3);padding:2px 6px">×${att}</span>`:''}
+      </div>
+      ${c.role?`<div class="cr-sub">${c.role}</div>`:''}
+      <div class="cr-bottom">
+        <div class="cr-dot" style="background:${col}"></div>
+        <span style="font-family:JetBrains Mono,monospace;font-size:9px;font-weight:700;color:${col}">${stage.toUpperCase()}</span>
+      </div>
+    </div>`;
+  }).join('');
+}
+
+function selectCompany(id) { selectedId=id; renderSidebar(); renderDetail(id); }
+
+function renderDetail(id) {
+  const c=getC(id);
+  if(!c) return;
+  const el=document.getElementById('detailPanel');
+  const a=lastAttempt(c);
+  const isRej=a?.rejected, isAcc=a?.currentStage==='Accepted';
+
+  let html=`<div class="det-header">
+    <div>
+      <div class="det-name">${c.name}</div>
+      <div class="det-meta">${[c.role,c.location].filter(Boolean).join(' · ')}</div>
+      ${c.url?`<a href="${c.url}" target="_blank" style="font-family:JetBrains Mono,monospace;font-size:10px;color:var(--accent);text-decoration:none;margin-top:4px;display:inline-block">↗ JOB POSTING</a>`:''}
+    </div>
+    <div class="det-actions">
+      <button class="btn btn-xs" onclick="openEditCompany('${c.id}')">EDIT INFO</button>
+      ${(isRej||isAcc)?`<button class="btn btn-xs btn-green" onclick="reapply('${c.id}')">↺ REAPPLY</button>`:''}
+      <button class="btn btn-xs btn-red" onclick="deleteCompany('${c.id}')">✕ DELETE</button>
+    </div>
+  </div>`;
+
+  html+=`<div class="sec-title">CURRENT PIPELINE — ATTEMPT #${c.attempts.length}</div>`;
+  html+=buildAttemptCard(c, a, c.attempts.length, true);
+
+  if(c.attempts.length>1) {
+    html+=`<div class="sec-title" style="margin-top:20px">PREVIOUS ATTEMPTS (${c.attempts.length-1})</div>`;
+    for(let i=c.attempts.length-2;i>=0;i--) html+=buildAttemptCard(c,c.attempts[i],i+1,false);
+  }
+  el.innerHTML=html;
+}
+
+function buildAttemptCard(c, a, num, isCurrent) {
+  const stageIdx=STAGES.indexOf(a.currentStage);
+  const nextStage=!a.rejected&&a.currentStage!=='Accepted'?STAGES[stageIdx+1]:null;
+
+  const header=`<div class="attempt-header">
+    <div>
+      <div class="att-label">ATTEMPT #${num} ${isCurrent?'<span style="color:var(--accent);font-size:9px">● CURRENT</span>':''}</div>
+      <div class="att-date">Started: ${fmt(a.startDate)}</div>
+    </div>
+    <div class="att-btns">
+      ${isCurrent&&!a.rejected&&a.currentStage!=='Accepted'&&nextStage?`<button class="btn btn-xs btn-green" onclick="advanceStage('${c.id}')">→ ${nextStage.toUpperCase()}</button>`:''}
+      ${isCurrent&&!a.rejected&&a.currentStage!=='Accepted'?`<button class="btn btn-xs btn-red" onclick="openReject('${c.id}')">✕ REJECTED HERE</button>`:''}
+      ${isCurrent&&(a.rejected||a.currentStage==='Accepted')?`<button class="btn btn-xs btn-green" onclick="reapply('${c.id}')">↺ REAPPLY</button>`:''}
+    </div>
+  </div>`;
+
+  // Flow
+  let flow=`<div class="pipeline-flow"><div class="flow-stages">`;
+  STAGES.forEach((stage,i)=>{
+    const rejIdx=a.rejected?STAGES.indexOf(a.rejectionStage):-1;
+    let bClass='pending';
+    if(a.rejected&&i<rejIdx) bClass='done';
+    else if(a.rejected&&i===rejIdx) bClass='rejected-stage';
+    else if(!a.rejected&&i<stageIdx) bClass='done';
+    else if(!a.rejected&&i===stageIdx) bClass=stage==='Accepted'?'accepted-stage':'current-stage';
+    const nActive=bClass!=='pending';
+    const connDone=!a.rejected&&i<stageIdx;
+    const connRej=a.rejected&&i<rejIdx;
+    flow+=`<div class="flow-stage"><div class="stage-node">
+      <div class="stage-bubble ${bClass}">${ABBR[stage]}</div>
+      <div class="stage-name ${nActive?'active':''}">${stage}</div>
+    </div></div>`;
+    if(i<STAGES.length-1) flow+=`<div class="flow-connector ${connDone?'done':''} ${connRej?'rejected-line':''}"></div>`;
+  });
+  flow+=`</div></div>`;
+
+  // Rejection info
+  let rejInfo='';
+  if(a.rejected) {
+    rejInfo=`<div class="rej-badge">✕ REJECTED AT ${(a.rejectionStage||'').toUpperCase()} · ${(a.rejectionType||'').toUpperCase()}</div>`;
+    if(a.rejectionNote) rejInfo+=`<div style="font-size:12px;color:var(--muted2);padding:4px 14px 8px;font-style:italic">"${esc(a.rejectionNote)}"</div>`;
+  }
+
+  // Stage log
+  const log=`<div class="stage-log">
+    <div class="stage-log-title">STAGE LOG</div>
+    <div class="stage-chips">${(a.stageHistory||[]).map(h=>{
+      const col=SCOL[h.stage]||'var(--muted)';
+      return `<div class="stage-chip" style="color:${col};border-color:${col}30">${h.stage} <span style="color:var(--muted);font-size:8px">${fmt(h.date)}${h.rejType?' · '+h.rejType:''}</span></div>`;
+    }).join('')}</div>
+  </div>`;
+
+  // Comments
+  const coms=a.comments||[];
+  const comments=`<div class="comments-section">
+    <div class="comments-title">NOTES & COMMENTS (${coms.length})</div>
+    <div class="comment-thread">${coms.map(cm=>`
+      <div class="comment">
+        <div class="comment-meta">
+          <span>${fmt(cm.date)}</span>
+          ${isCurrent?`<button class="comment-del" onclick="deleteComment('${c.id}','${a.id}','${cm.id}')">✕</button>`:''}
+        </div>
+        <div class="comment-text">${esc(cm.text)}</div>
+      </div>`).join('')}
+    </div>
+    ${isCurrent?`<div class="add-comment">
+      <textarea class="comment-input" id="ci_${a.id}" placeholder="Add notes, feedback, prep thoughts..." rows="2"></textarea>
+      <button class="btn btn-xs btn-green" style="align-self:flex-end;padding:8px 12px" onclick="addComment('${c.id}','${a.id}')">ADD</button>
+    </div>`:''}
+  </div>`;
+
+  const cardClass=`attempt-card ${isCurrent?'current':''} ${a.rejected?'rejected-card':''}`;
+  return `<div class="${cardClass}">${header}${flow}${rejInfo}${log}${comments}</div>`;
+}
+
+function exportData() {
+  const rows=[['Company','Role','Location','Attempt#','Stage','Rejected','Rejection Type','Rejection Stage','Rejection Note','Started','Comments']];
+  data.forEach(c=>c.attempts.forEach((a,i)=>{
+    rows.push([c.name,c.role||'',c.location||'',i+1,a.currentStage,a.rejected?'Yes':'No',a.rejectionType||'',a.rejectionStage||'',a.rejectionNote||'',a.startDate,(a.comments||[]).map(x=>x.text).join(' | ')]);
+  }));
+  const csv=rows.map(r=>r.map(v=>`"${String(v).replace(/"/g,'""')}"`).join(',')).join('\n');
+  const el=document.createElement('a');
+  el.href='data:text/csv;charset=utf-8,'+encodeURIComponent(csv);
+  el.download=`pipeline_${today()}.csv`;
+  el.click();
+}
+
+// ── WATCHLIST ──
+let watchlist = JSON.parse(localStorage.getItem('jpt3_watch') || '[]');
+let editingWatchId = null;
+const saveWatch2 = () => localStorage.setItem('jpt3_watch', JSON.stringify(watchlist));
+
+function switchView(view) {
+  document.getElementById('view-pipeline').style.display = view==='pipeline' ? '' : 'none';
+  document.getElementById('view-watchlist').style.display = view==='watchlist' ? '' : 'none';
+  document.getElementById('tab-pipeline').classList.toggle('active', view==='pipeline');
+  document.getElementById('tab-watchlist').classList.toggle('active', view==='watchlist');
+  if(view==='watchlist') renderWatchlist();
+}
+
+function openAddWatch() {
+  editingWatchId = null;
+  document.getElementById('watchModalTitle').textContent = 'ADD TO WATCHLIST';
+  ['w_company','w_role','w_url','w_note'].forEach(id=>document.getElementById(id).value='');
+  document.getElementById('w_priority').value = 'Medium';
+  document.getElementById('watchModal').classList.add('open');
+}
+
+function openEditWatch(id) {
+  const w = watchlist.find(x=>x.id===id);
+  editingWatchId = id;
+  document.getElementById('watchModalTitle').textContent = 'EDIT WATCHLIST ENTRY';
+  document.getElementById('w_company').value = w.name;
+  document.getElementById('w_role').value = w.role||'';
+  document.getElementById('w_url').value = w.url||'';
+  document.getElementById('w_priority').value = w.priority||'Medium';
+  document.getElementById('w_note').value = w.note||'';
+  document.getElementById('watchModal').classList.add('open');
+}
+
+function saveWatch() {
+  const name = document.getElementById('w_company').value.trim();
+  if(!name){alert('Company name required');return;}
+  if(editingWatchId) {
+    const w = watchlist.find(x=>x.id===editingWatchId);
+    Object.assign(w, {name, role:document.getElementById('w_role').value, url:document.getElementById('w_url').value, priority:document.getElementById('w_priority').value, note:document.getElementById('w_note').value});
+  } else {
+    watchlist.unshift({id:uid(), name, role:document.getElementById('w_role').value, url:document.getElementById('w_url').value, priority:document.getElementById('w_priority').value, note:document.getElementById('w_note').value, addedDate:today()});
+  }
+  saveWatch2(); closeModal('watchModal'); renderWatchlist(); updateBadges();
+}
+
+function deleteWatch(id) {
+  if(!confirm('Remove from watchlist?')) return;
+  watchlist = watchlist.filter(w=>w.id!==id);
+  saveWatch2(); renderWatchlist(); updateBadges();
+}
+
+function promoteToApplied(id) {
+  const w = watchlist.find(x=>x.id===id);
+  editingId = null;
+  document.getElementById('compModalTitle').textContent = 'ADD TO PIPELINE';
+  document.getElementById('m_company').value = w.name;
+  document.getElementById('m_role').value = w.role||'';
+  document.getElementById('m_location').value = '';
+  document.getElementById('m_url').value = w.url||'';
+  document.getElementById('m_date').value = today();
+  document.getElementById('watchModal').classList.remove('open');
+  document.getElementById('companyModal').classList.add('open');
+  window._promoteFromWatchId = id;
+}
+
+function renderWatchlist() {
+  const q = (document.getElementById('watchSearch')?.value||'').toLowerCase();
+  const pf = document.getElementById('watchPriority')?.value||'';
+  const filtered = watchlist.filter(w=>{
+    if(q&&!w.name.toLowerCase().includes(q)&&!(w.role||'').toLowerCase().includes(q)) return false;
+    if(pf&&w.priority!==pf) return false;
+    return true;
+  });
+  const el = document.getElementById('watchlistGrid');
+  if(!filtered.length) {
+    el.innerHTML=`<div style="grid-column:1/-1;padding:60px;text-align:center;color:var(--muted)">
+      <div style="font-size:36px;opacity:.2;margin-bottom:10px">◈</div>
+      <div style="font-family:JetBrains Mono,monospace;font-size:11px">NO COMPANIES IN WATCHLIST YET</div>
+      <div style="font-size:12px;color:var(--muted);margin-top:6px">Add companies you want to keep an eye on for future openings</div>
+    </div>`;
+    return;
+  }
+  const pColors={'High':'priority-high','Medium':'priority-med','Low':'priority-low'};
+  el.innerHTML=filtered.map(w=>`
+    <div class="watch-card">
+      <div class="watch-card-name">${w.name}</div>
+      ${w.role?`<div class="watch-card-role">${w.role}</div>`:''}
+      <div class="watch-card-tags">
+        <span class="watch-tag ${pColors[w.priority]||''}">${w.priority||'Medium'} Priority</span>
+        ${w.addedDate?`<span class="watch-tag">Added ${fmt(w.addedDate)}</span>`:''}
+      </div>
+      ${w.note?`<div class="watch-card-note">${esc(w.note)}</div>`:''}
+      <div class="watch-card-actions">
+        <button class="btn btn-xs btn-green" onclick="promoteToApplied('${w.id}')">→ APPLY NOW</button>
+        ${w.url?`<a href="${w.url}" target="_blank" class="btn btn-xs" style="text-decoration:none">↗ CAREERS</a>`:''}
+        <button class="btn btn-xs btn-orange" onclick="openEditWatch('${w.id}')">EDIT</button>
+        <button class="btn btn-xs btn-red" onclick="deleteWatch('${w.id}')">✕</button>
+      </div>
+    </div>`).join('');
+}
+
+function updateBadges() {
+  document.getElementById('badge-pipeline').textContent = data.length;
+  document.getElementById('badge-watchlist').textContent = watchlist.length;
+}
+
+const _origRenderAll = renderAll;
+function renderAll() { _origRenderAll(); updateBadges(); }
+
+function closeModal(id){document.getElementById(id).classList.remove('open');}
+document.querySelectorAll('.overlay').forEach(o=>o.addEventListener('click',e=>{if(e.target===o)o.classList.remove('open');}));
+
+// Handle Enter in comment
+document.addEventListener('keydown', e => {
+  if(e.key==='Enter'&&e.ctrlKey&&document.activeElement?.classList.contains('comment-input')) {
+    const aid=document.activeElement.id.replace('ci_','');
+    const cid=selectedId;
+    if(cid&&aid) addComment(cid,aid);
+  }
+});
+
+renderAll();
+</script>
+</body>
+</html>

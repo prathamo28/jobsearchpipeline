@@ -55,6 +55,18 @@ Do not commit real API keys. On Vercel, use env vars. If Supabase is not set, th
 - **Backup:** Use **↓ BACKUP** in the header to download a `.json` file containing pipeline and watchlist. Store this file somewhere safe (e.g. cloud drive).
 - **Restore:** Use **↑ RESTORE** and choose a previously downloaded backup file. This replaces current pipeline and watchlist (and syncs to Supabase if configured).
 
+### Will I lose my data when the app is updated or features change?
+
+**No.** Your progress is stored **separately** from the app code:
+
+- **In the browser:** Data lives in `localStorage` under keys `jpt3` and `jpt3_watch`. Updating `index.html` or any script does **not** clear that. You keep all companies, stages, and notes.
+- **With Supabase:** Data lives in your Supabase project. Code changes (e.g. new features, redeploys) do **not** delete or overwrite that. Same data loads every time.
+
+To be extra safe:
+1. Use **↓ BACKUP** every so often and keep the `.json` file (e.g. in Google Drive or OneDrive).
+2. If you use **Supabase**, your data is in the cloud; even clearing the browser or switching devices won’t lose it (just open the app and it loads from Supabase).
+3. Avoid clearing “site data” or “localStorage” for this app in the browser if you’re not using Supabase; that would remove local-only data (you can restore from a backup if you have one).
+
 ## Export CSV
 
 Use **↓ CSV** to export pipeline data as a spreadsheet-friendly CSV (one row per attempt). Useful for sharing or analysis outside the app.

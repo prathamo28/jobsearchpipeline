@@ -94,7 +94,7 @@ header {
 .filter-row { display: flex; gap: 6px; }
 .fsel { flex: 1; background: var(--s2); border: 1px solid var(--border); color: var(--muted2); padding: 5px 7px; font-family: 'JetBrains Mono', monospace; font-size: 10px; outline: none; cursor: pointer; }
 .fsel option { background: var(--s2); }
-.company-list { flex: 1; min-height: 120px; overflow-y: auto; padding: 6px; }
+.company-list { flex: 1 1 0; min-height: 0; overflow-y: auto; padding: 6px; }
 .company-row { padding: 11px 12px; border: 1px solid transparent; cursor: pointer; transition: all .15s; margin-bottom: 3px; }
 .company-row:hover { background: var(--s2); border-color: var(--border); }
 .company-row.active { background: var(--s2); border-color: var(--accent); }
@@ -235,7 +235,7 @@ textarea { resize: vertical; min-height: 70px; }
   <div class="hdr-right">
     <input type="file" id="backupFileInput" accept=".json,application/json" style="display:none" onchange="importBackup(event)">
     <button class="btn" onclick="exportData()">↓ CSV</button>
-    <button class="btn" onclick="exportBackup()">↓ BACKUP</button>
+    <button class="btn" onclick="exportBackup()" title="Download a JSON backup of all pipeline & watchlist data. Keep this file safe so you never lose progress.">↓ BACKUP</button>
     <button class="btn" onclick="document.getElementById('backupFileInput').click()">↑ RESTORE</button>
     <button type="button" class="btn btn-green" onclick="openAddCompany()">+ ADD COMPANY</button>
   </div>
@@ -774,6 +774,10 @@ function switchView(view) {
   document.getElementById('tab-pipeline').classList.toggle('active', view==='pipeline');
   document.getElementById('tab-watchlist').classList.toggle('active', view==='watchlist');
   if(view==='watchlist') renderWatchlist();
+  if(view==='pipeline') {
+    renderSidebar();
+    if(selectedId) renderDetail(selectedId); else if(data.length) { selectedId=data[0].id; renderDetail(selectedId); }
+  }
 }
 
 function openAddWatch() {
@@ -907,6 +911,7 @@ async function init() {
   if (data.length && !selectedId) selectedId = data[0].id;
   renderAll();
   setTimeout(renderAll, 0);
+  setTimeout(renderAll, 100);
 }
 init();
 

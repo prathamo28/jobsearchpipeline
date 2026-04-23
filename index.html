@@ -30,11 +30,15 @@
   --gold-dim: rgba(255,215,0,0.1);
   --orange: #ff9f43;
   --orange-dim: rgba(255,159,67,0.12);
+  --pink: #f472b6;
+  --pink-dim: rgba(244,114,182,0.12);
+  --purple: #a78bfa;
+  --purple-dim: rgba(167,139,250,0.12);
   --c-apply: #5eaeff;
   --c-hr: #a78bfa;
-  --c-t1: #38bdf8;
-  --c-t2: #22d3ee;
-  --c-ceo: #f59e0b;
+  --c-technical: #38bdf8;
+  --c-manager: #ff9f43;
+  --c-cultfit: #f472b6;
   --c-offer: #4af0b0;
   --c-accepted: #ffd700;
   --c-rejected: #ff5370;
@@ -45,6 +49,8 @@ body {
   background: var(--bg);
   color: var(--text);
   min-height: 100vh;
+  display: flex;
+  flex-direction: column;
 }
 body::before {
   content: '';
@@ -53,7 +59,7 @@ body::before {
   background-size: 28px 28px;
   pointer-events: none; z-index: 0;
 }
-.wrap { position: relative; z-index: 1; }
+.wrap { position: relative; z-index: 1; display: flex; flex-direction: column; flex: 1; min-height: 0; }
 
 /* HEADER */
 header {
@@ -64,6 +70,7 @@ header {
   padding: 0 24px;
   display: flex; align-items: center; justify-content: space-between;
   height: 52px;
+  flex-shrink: 0;
 }
 .logo { font-family: 'JetBrains Mono', monospace; font-size: 12px; color: var(--accent); display: flex; align-items: center; gap: 8px; }
 .logo-dot { width: 7px; height: 7px; border-radius: 50%; background: var(--accent); animation: blink 1.8s ease infinite; }
@@ -79,31 +86,50 @@ header {
 .btn-red { border-color: var(--red); color: var(--red); }
 .btn-red:hover { background: var(--red); color: white; }
 .btn-xs { padding: 4px 10px; font-size: 10px; }
+.btn-orange { border-color: var(--orange); color: var(--orange); }
+.btn-orange:hover { background: var(--orange); color: var(--bg); }
 
-/* DASHBOARD TOP BAR */
-.dashboard-bar { display: flex; align-items: center; gap: 20px; padding: 14px 20px; border-bottom: 1px solid var(--border); background: linear-gradient(180deg, var(--s1) 0%, var(--s2) 100%); overflow-x: auto; }
-.dashboard-donut-wrap { flex-shrink: 0; }
-.dashboard-donut { position: relative; width: 56px; height: 56px; border-radius: 50%; background: var(--border2); display: flex; align-items: center; justify-content: center; }
-.dashboard-donut::after { content: ''; position: absolute; inset: 10px; border-radius: 50%; background: var(--s1); pointer-events: none; }
-.donut-center { position: relative; z-index: 1; font-family: 'JetBrains Mono', monospace; font-size: 12px; font-weight: 700; color: var(--text); }
-.dashboard-stats { display: flex; align-items: center; gap: 16px; flex-wrap: wrap; }
-.dash-stat { display: flex; align-items: baseline; gap: 6px; padding: 6px 12px; background: var(--s3); border: 1px solid var(--border); border-radius: 6px; cursor: pointer; font-family: inherit; color: inherit; transition: border-color .15s, background .15s; }
-.dash-stat:hover { border-color: var(--accent); background: var(--s2); }
-.dash-stat-n { font-family: 'JetBrains Mono', monospace; font-size: 18px; font-weight: 700; line-height: 1; }
-.dash-stat-l { font-size: 10px; letter-spacing: .08em; text-transform: uppercase; color: var(--muted); }
-.sum-cell-btn { background: none; border: none; border-right: 1px solid var(--border); cursor: pointer; font-family: inherit; color: inherit; border-radius: 0; transition: background .15s; }
-.sum-cell-btn:hover { background: var(--s2); }
-
-/* SUMMARY (legacy row, kept compact) */
-.summary-bar { display: flex; border-bottom: 1px solid var(--border); background: var(--s1); overflow-x: auto; }
-.sum-cell { flex: 1; min-width: 72px; padding: 8px 10px; border-right: 1px solid var(--border); text-align: center; }
-.sum-cell:last-child { border-right: none; }
-.sum-cell-btn:last-child { border-right: none; }
-.sum-n { font-family: 'JetBrains Mono', monospace; font-size: 16px; font-weight: 700; line-height: 1; }
-.sum-l { font-size: 8px; letter-spacing: .1em; text-transform: uppercase; color: var(--muted); margin-top: 2px; }
+/* STATS BAR — single merged bar */
+.stats-bar {
+  display: flex; align-items: stretch;
+  border-bottom: 1px solid var(--border);
+  background: var(--s1);
+  flex-shrink: 0;
+  overflow-x: auto;
+}
+.stats-donut-cell {
+  display: flex; align-items: center; gap: 14px;
+  padding: 12px 20px;
+  border-right: 1px solid var(--border);
+  flex-shrink: 0;
+}
+.stats-donut {
+  position: relative; width: 52px; height: 52px; border-radius: 50%;
+  background: var(--border2);
+  display: flex; align-items: center; justify-content: center;
+  flex-shrink: 0;
+}
+.stats-donut::after { content: ''; position: absolute; inset: 9px; border-radius: 50%; background: var(--s1); pointer-events: none; }
+.donut-num { position: relative; z-index: 1; font-family: 'JetBrains Mono', monospace; font-size: 13px; font-weight: 700; }
+.donut-legend { display: flex; flex-direction: column; gap: 4px; }
+.legend-row { display: flex; align-items: center; gap: 6px; font-family: 'JetBrains Mono', monospace; font-size: 9px; color: var(--muted2); }
+.legend-dot { width: 7px; height: 7px; border-radius: 50%; flex-shrink: 0; }
+.stat-cell {
+  flex: 1; min-width: 72px; display: flex; flex-direction: column;
+  align-items: center; justify-content: center;
+  padding: 10px 8px 8px;
+  border-right: 1px solid var(--border);
+  cursor: pointer; transition: background .15s; gap: 3px; position: relative;
+}
+.stat-cell:last-child { border-right: none; }
+.stat-cell:hover { background: var(--s2); }
+.stat-n { font-family: 'JetBrains Mono', monospace; font-size: 20px; font-weight: 700; line-height: 1; }
+.stat-l { font-size: 9px; letter-spacing: .08em; text-transform: uppercase; color: var(--muted); }
+.stat-accent-bar { position: absolute; bottom: 0; left: 0; right: 0; height: 2px; }
 
 /* LAYOUT */
-.layout { display: flex; height: calc(100vh - 52px - 130px); }
+.main-body { display: flex; flex-direction: column; flex: 1; min-height: 0; }
+.layout { display: flex; flex: 1; min-height: 0; }
 
 /* SIDEBAR */
 .sidebar { width: 280px; min-width: 280px; border-right: 1px solid var(--border); background: var(--s1); display: flex; flex-direction: column; overflow: hidden; }
@@ -130,10 +156,35 @@ header {
 .empty-text { font-family: 'JetBrains Mono', monospace; font-size: 11px; letter-spacing: .1em; }
 
 /* COMPANY HEADER */
-.det-header { display: flex; align-items: flex-start; justify-content: space-between; margin-bottom: 22px; flex-wrap: wrap; gap: 10px; }
+.det-header { display: flex; align-items: flex-start; justify-content: space-between; margin-bottom: 0; flex-wrap: wrap; gap: 10px; }
 .det-name { font-size: 30px; font-weight: 800; letter-spacing: -.01em; }
 .det-meta { font-size: 13px; color: var(--muted2); margin-top: 2px; }
 .det-actions { display: flex; gap: 7px; flex-wrap: wrap; }
+
+/* FIELDS GRID */
+.det-fields { display: grid; grid-template-columns: 1fr 1fr; border: 1px solid var(--border); border-top: none; margin-bottom: 18px; }
+.det-field { padding: 10px 16px; border-right: 1px solid var(--border); border-bottom: 1px solid var(--border); }
+.det-field:nth-child(even) { border-right: none; }
+.det-field-label { font-family: 'JetBrains Mono', monospace; font-size: 8px; color: var(--muted); letter-spacing: .12em; text-transform: uppercase; margin-bottom: 3px; }
+.det-field-value { font-size: 13px; color: var(--text); font-weight: 600; }
+.det-field-value.empty { color: var(--muted); font-weight: 400; font-style: italic; font-size: 12px; }
+.det-field-value.salary { color: var(--accent); }
+.det-field-value.date-val { color: var(--blue); }
+.det-field-value.recruiter-val { color: var(--purple); }
+
+/* INTERVIEW BADGE */
+.interview-soon-badge { display: inline-flex; align-items: center; gap: 6px; background: var(--blue-dim); border: 1px solid var(--blue); color: var(--blue); font-family: 'JetBrains Mono', monospace; font-size: 10px; padding: 5px 14px; margin-bottom: 14px; }
+
+/* JD / CV SECTION */
+.doc-section { border: 1px solid var(--border); margin-bottom: 18px; }
+.doc-toggle { width: 100%; display: flex; justify-content: space-between; align-items: center; padding: 10px 14px; background: var(--s2); border: none; color: var(--muted2); font-family: 'JetBrains Mono', monospace; font-size: 9px; letter-spacing: .1em; text-transform: uppercase; cursor: pointer; transition: color .15s; }
+.doc-toggle:hover { color: var(--accent); }
+.doc-toggle-arrow { transition: transform .2s; }
+.doc-toggle.open .doc-toggle-arrow { transform: rotate(180deg); }
+.doc-body { display: none; padding: 14px; border-top: 1px solid var(--border); }
+.doc-body.open { display: block; }
+.doc-text { font-size: 12px; color: var(--muted2); line-height: 1.7; white-space: pre-wrap; word-break: break-word; }
+.doc-empty { font-size: 12px; color: var(--muted); font-style: italic; }
 
 /* SECTION */
 .sec-title { font-family: 'JetBrains Mono', monospace; font-size: 9px; letter-spacing: .18em; text-transform: uppercase; color: var(--accent); border-bottom: 1px solid var(--border); padding-bottom: 7px; margin-bottom: 12px; }
@@ -151,18 +202,18 @@ header {
 .pipeline-flow { padding: 18px 14px 12px; overflow-x: auto; }
 .flow-stages { display: flex; align-items: center; min-width: max-content; }
 .flow-stage { display: flex; flex-direction: column; align-items: center; }
-.flow-connector { width: 28px; height: 2px; background: var(--border2); flex-shrink: 0; align-self: center; margin-bottom: 42px; }
+.flow-connector { width: 24px; height: 2px; background: var(--border2); flex-shrink: 0; align-self: center; margin-bottom: 42px; }
 .flow-connector.done { background: var(--accent); }
 .flow-connector.rejected-line { background: var(--red); }
-.stage-node { display: flex; flex-direction: column; align-items: center; gap: 5px; width: 82px; }
-.stage-bubble { width: 38px; height: 38px; border-radius: 50%; border: 2px solid var(--border2); background: var(--s2); display: flex; align-items: center; justify-content: center; font-family: 'JetBrains Mono', monospace; font-size: 9px; font-weight: 700; transition: all .2s; }
+.stage-node { display: flex; flex-direction: column; align-items: center; gap: 5px; width: 78px; }
+.stage-bubble { width: 38px; height: 38px; border-radius: 50%; border: 2px solid var(--border2); background: var(--s2); display: flex; align-items: center; justify-content: center; font-family: 'JetBrains Mono', monospace; font-size: 8px; font-weight: 700; transition: all .2s; }
 .stage-bubble.done { border-color: var(--accent); background: var(--accent-dim); color: var(--accent); }
 .stage-bubble.current-stage { border-color: var(--blue); background: var(--blue-dim); color: var(--blue); animation: pulse-ring 2s infinite; }
 @keyframes pulse-ring { 0%,100%{box-shadow:0 0 8px rgba(94,174,255,.3)} 50%{box-shadow:0 0 18px rgba(94,174,255,.5)} }
 .stage-bubble.rejected-stage { border-color: var(--red); background: var(--red-dim); color: var(--red); }
 .stage-bubble.accepted-stage { border-color: var(--gold); background: var(--gold-dim); color: var(--gold); box-shadow: 0 0 12px rgba(255,215,0,.3); }
 .stage-bubble.pending { border-color: var(--border2); color: var(--muted); }
-.stage-name { font-size: 10px; text-align: center; color: var(--muted); line-height: 1.3; }
+.stage-name { font-size: 9px; text-align: center; color: var(--muted); line-height: 1.3; }
 .stage-name.active { color: var(--text); font-weight: 600; }
 
 /* REJECTION BADGE */
@@ -191,18 +242,25 @@ header {
 /* MODAL */
 .overlay { position: fixed; inset: 0; background: rgba(0,0,0,.82); backdrop-filter: blur(6px); z-index: 500; display: flex; align-items: center; justify-content: center; padding: 20px; opacity: 0; pointer-events: none; transition: opacity .2s; }
 .overlay.open { opacity: 1; pointer-events: all; }
-.modal { background: var(--s1); border: 1px solid var(--border2); border-top: 2px solid var(--accent); width: 100%; max-width: 480px; max-height: 90vh; overflow-y: auto; transform: translateY(14px); transition: transform .2s; }
+.modal { background: var(--s1); border: 1px solid var(--border2); border-top: 2px solid var(--accent); width: 100%; max-width: 520px; max-height: 90vh; overflow-y: auto; transform: translateY(14px); transition: transform .2s; }
 .overlay.open .modal { transform: translateY(0); }
 .modal-hdr { display: flex; justify-content: space-between; align-items: center; padding: 14px 18px; border-bottom: 1px solid var(--border); }
 .modal-title { font-family: 'JetBrains Mono', monospace; font-size: 11px; color: var(--accent); letter-spacing: .1em; text-transform: uppercase; }
-.modal-body { padding: 18px; display: flex; flex-direction: column; gap: 13px; }
+.modal-body { padding: 18px; display: flex; flex-direction: column; gap: 0; }
 .modal-foot { display: flex; justify-content: flex-end; gap: 7px; padding: 13px 18px; border-top: 1px solid var(--border); }
-.fg { display: flex; flex-direction: column; gap: 5px; }
+.fg { display: flex; flex-direction: column; gap: 5px; margin-bottom: 12px; }
+.fg-row { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; margin-bottom: 12px; }
+.modal-section-divider { font-family: 'JetBrains Mono', monospace; font-size: 8px; letter-spacing: .15em; text-transform: uppercase; color: var(--accent); margin: 4px 0 12px; padding-bottom: 6px; border-bottom: 1px solid var(--border); opacity: .8; }
 label { font-family: 'JetBrains Mono', monospace; font-size: 9px; color: var(--muted); letter-spacing: .1em; text-transform: uppercase; }
+.opt-tag { font-size: 8px; color: var(--muted); margin-left: 4px; letter-spacing: .04em; text-transform: lowercase; font-style: italic; font-family: 'JetBrains Mono', monospace; }
 input, select, textarea { background: var(--bg); border: 1px solid var(--border); color: var(--text); padding: 8px 11px; font-family: 'Syne', sans-serif; font-size: 14px; outline: none; transition: border-color .2s; width: 100%; }
 input:focus, select:focus, textarea:focus { border-color: var(--accent); }
 select option { background: var(--bg); }
 textarea { resize: vertical; min-height: 70px; }
+.collapse-btn { width: 100%; display: flex; justify-content: space-between; align-items: center; padding: 8px 12px; background: var(--s2); border: 1px solid var(--border); color: var(--muted2); font-family: 'JetBrains Mono', monospace; font-size: 9px; letter-spacing: .08em; cursor: pointer; transition: all .15s; margin-bottom: 0; }
+.collapse-btn:hover { border-color: var(--accent); color: var(--accent); }
+.collapse-content { display: none; padding: 12px 0 0; }
+.collapse-content.open { display: flex; flex-direction: column; gap: 0; }
 
 /* REJECT OPTIONS */
 .rej-options { display: flex; flex-direction: column; gap: 7px; }
@@ -215,7 +273,7 @@ textarea { resize: vertical; min-height: 70px; }
 .rej-opt.selected .rej-radio { border-color: var(--red); background: var(--red); }
 
 /* TABS */
-.view-tabs { display: flex; border-bottom: 1px solid var(--border); background: var(--s1); }
+.view-tabs { display: flex; border-bottom: 1px solid var(--border); background: var(--s1); flex-shrink: 0; }
 .view-tab { font-family: 'JetBrains Mono', monospace; font-size: 11px; padding: 10px 20px; background: none; border: none; border-bottom: 2px solid transparent; color: var(--muted); cursor: pointer; transition: all .15s; letter-spacing: .06em; margin-bottom: -1px; }
 .view-tab:hover { color: var(--text); }
 .view-tab.active { color: var(--accent); border-bottom-color: var(--accent); }
@@ -234,16 +292,17 @@ textarea { resize: vertical; min-height: 70px; }
 .watch-tag.priority-low { border-color: var(--muted); color: var(--muted); }
 .watch-card-note { font-size: 12px; color: var(--muted2); margin-top: 10px; line-height: 1.5; border-left: 2px solid var(--border); padding-left: 8px; font-style: italic; }
 .watch-card-actions { display: flex; gap: 6px; margin-top: 12px; flex-wrap: wrap; }
-.btn-orange { border-color: var(--orange); color: var(--orange); }
-.btn-orange:hover { background: var(--orange); color: var(--bg); }
 
 ::-webkit-scrollbar { width: 4px; height: 4px; }
 ::-webkit-scrollbar-track { background: var(--bg); }
 ::-webkit-scrollbar-thumb { background: var(--border2); }
 
 @media (max-width: 700px) {
-  .layout { flex-direction: column; height: auto; }
+  .layout { flex-direction: column; }
   .sidebar { width: 100%; min-width: 0; border-right: none; border-bottom: 1px solid var(--border); max-height: 45vh; }
+  .fg-row { grid-template-columns: 1fr; }
+  .det-fields { grid-template-columns: 1fr; }
+  .det-field { border-right: none !important; }
 }
 </style>
 </head>
@@ -255,76 +314,112 @@ textarea { resize: vertical; min-height: 70px; }
   <div class="hdr-right">
     <input type="file" id="backupFileInput" accept=".json,application/json" style="display:none" onchange="importBackup(event)">
     <button class="btn" onclick="exportData()">↓ CSV</button>
-    <button class="btn" onclick="exportBackup()" title="Download a JSON backup of all pipeline & watchlist data. Keep this file safe so you never lose progress.">↓ BACKUP</button>
+    <button class="btn" onclick="exportBackup()" title="Download a JSON backup of all pipeline & watchlist data.">↓ BACKUP</button>
     <button class="btn" onclick="document.getElementById('backupFileInput').click()">↑ RESTORE</button>
     <button type="button" class="btn btn-green" onclick="openAddCompany()">+ ADD COMPANY</button>
   </div>
 </header>
 
-<div class="dashboard-bar" id="dashboardBar">
-  <div class="dashboard-donut-wrap"><div class="dashboard-donut" id="dashboardDonut"></div></div>
-  <div class="dashboard-stats" id="dashboardStats"></div>
+<!-- STATS BAR — single merged bar -->
+<div class="stats-bar" id="statsBar">
+  <div class="stats-donut-cell">
+    <div class="stats-donut" id="statsDonut"><span class="donut-num" id="statsDonutNum">0</span></div>
+    <div class="donut-legend" id="statsLegend"></div>
+  </div>
+  <div class="stat-cell" onclick="applySummaryFilter('total')">
+    <div class="stat-n" id="sn-total" style="color:var(--text)">0</div>
+    <div class="stat-l">Total</div>
+    <div class="stat-accent-bar" style="background:var(--muted2)"></div>
+  </div>
+  <div class="stat-cell" onclick="applySummaryFilter('active')">
+    <div class="stat-n" id="sn-active" style="color:var(--blue)">0</div>
+    <div class="stat-l">Active</div>
+    <div class="stat-accent-bar" style="background:var(--blue)"></div>
+  </div>
+  <div class="stat-cell" onclick="applySummaryFilter('interviews')">
+    <div class="stat-n" id="sn-interviews" style="color:var(--c-technical)">0</div>
+    <div class="stat-l">Interviews</div>
+    <div class="stat-accent-bar" style="background:var(--c-technical)"></div>
+  </div>
+  <div class="stat-cell" onclick="applySummaryFilter('offers')">
+    <div class="stat-n" id="sn-offers" style="color:var(--accent)">0</div>
+    <div class="stat-l">Offers</div>
+    <div class="stat-accent-bar" style="background:var(--accent)"></div>
+  </div>
+  <div class="stat-cell" onclick="applySummaryFilter('accepted')">
+    <div class="stat-n" id="sn-accepted" style="color:var(--gold)">0</div>
+    <div class="stat-l">Accepted</div>
+    <div class="stat-accent-bar" style="background:var(--gold)"></div>
+  </div>
+  <div class="stat-cell" onclick="applySummaryFilter('rejected')">
+    <div class="stat-n" id="sn-rejected" style="color:var(--red)">0</div>
+    <div class="stat-l">Rejected</div>
+    <div class="stat-accent-bar" style="background:var(--red)"></div>
+  </div>
 </div>
-<div class="summary-bar" id="summaryBar"></div>
 
-<!-- VIEW TABS -->
-<div class="view-tabs">
-  <button class="view-tab active" id="tab-pipeline" onclick="switchView('pipeline')">PIPELINE <span class="tab-badge" id="badge-pipeline">0</span></button>
-  <button class="view-tab" id="tab-watchlist" onclick="switchView('watchlist')" title="Companies you're interested in but haven't applied to yet. Add here to track roles; move to Pipeline when you apply.">WATCHLIST <span class="tab-badge" id="badge-watchlist">0</span></button>
-</div>
+<div class="main-body">
+  <!-- VIEW TABS -->
+  <div class="view-tabs">
+    <button class="view-tab active" id="tab-pipeline" onclick="switchView('pipeline')">PIPELINE <span class="tab-badge" id="badge-pipeline">0</span></button>
+    <button class="view-tab" id="tab-watchlist" onclick="switchView('watchlist')" title="Companies you're interested in but haven't applied to yet.">WATCHLIST <span class="tab-badge" id="badge-watchlist">0</span></button>
+  </div>
 
-<div id="view-pipeline">
-<div class="layout">
-  <div class="sidebar">
-    <div class="sidebar-top">
-      <input class="search" id="sideSearch" type="text" placeholder="search company or role..." oninput="renderSidebar()">
-      <div class="filter-row">
-        <select class="fsel" id="stageFilter" onchange="renderSidebar()">
-          <option value="">All stages</option>
-          <option value="interviews">Interviews (T1/T2/CEO)</option>
-          <option value="offers">Offers</option>
-          <option>Applied</option><option>HR</option><option>Tech 1</option>
-          <option>Tech 2</option><option>CEO</option><option>Offer</option>
-          <option>Accepted</option><option>Rejected</option>
-        </select>
-        <select class="fsel" id="statusFilter" onchange="renderSidebar()">
-          <option value="">All</option>
-          <option value="active">Active</option>
-          <option value="rejected">Rejected</option>
-          <option value="accepted">Accepted</option>
-        </select>
+  <div id="view-pipeline" style="display:flex;flex-direction:column;flex:1;min-height:0">
+    <div class="layout">
+      <div class="sidebar">
+        <div class="sidebar-top">
+          <input class="search" id="sideSearch" type="text" placeholder="search company or role..." oninput="renderSidebar()">
+          <div class="filter-row">
+            <select class="fsel" id="stageFilter" onchange="renderSidebar()">
+              <option value="">All stages</option>
+              <option value="interviews">Interviews</option>
+              <option value="offers">Offers</option>
+              <option>Applied</option>
+              <option>HR</option>
+              <option>Technical</option>
+              <option>Manager</option>
+              <option>Cultural Fit</option>
+              <option>Offer</option>
+              <option>Accepted</option>
+              <option>Rejected</option>
+            </select>
+            <select class="fsel" id="statusFilter" onchange="renderSidebar()">
+              <option value="">All</option>
+              <option value="active">Active</option>
+              <option value="rejected">Rejected</option>
+              <option value="accepted">Accepted</option>
+            </select>
+          </div>
+        </div>
+        <div class="company-list" id="companyList"></div>
+      </div>
+
+      <div class="detail" id="detailPanel">
+        <div class="empty-detail">
+          <div class="empty-icon">◈</div>
+          <div class="empty-text">SELECT A COMPANY TO VIEW PIPELINE</div>
+        </div>
       </div>
     </div>
-    <div class="company-list" id="companyList"></div>
   </div>
 
-  <div class="detail" id="detailPanel">
-    <div class="empty-detail">
-      <div class="empty-icon">◈</div>
-      <div class="empty-text">SELECT A COMPANY TO VIEW PIPELINE</div>
-    </div>
-  </div>
-</div>
-</div>
-</div>
-
-<!-- WATCHLIST VIEW -->
-<div id="view-watchlist" style="display:none">
-  <div style="display:flex;justify-content:space-between;align-items:center;padding:16px 26px;border-bottom:1px solid var(--border);background:var(--s1)">
-    <div>
+  <!-- WATCHLIST VIEW -->
+  <div id="view-watchlist" style="display:none;flex:1;overflow-y:auto">
+    <div style="display:flex;justify-content:space-between;align-items:center;padding:16px 26px;border-bottom:1px solid var(--border);background:var(--s1)">
       <input class="search" id="watchSearch" type="text" placeholder="search watchlist..." oninput="renderWatchlist()" style="width:220px">
+      <div style="display:flex;gap:8px;align-items:center">
+        <select class="fsel" id="watchPriority" onchange="renderWatchlist()" style="width:130px">
+          <option value="">All priorities</option>
+          <option value="High">High</option>
+          <option value="Medium">Medium</option>
+          <option value="Low">Low</option>
+        </select>
+        <button class="btn btn-orange" onclick="openAddWatch()">+ ADD TO WATCHLIST</button>
+      </div>
     </div>
-    <div style="display:flex;gap:8px;align-items:center">
-      <select class="fsel" id="watchPriority" onchange="renderWatchlist()" style="width:130px">
-        <option value="">All priorities</option>
-        <option value="High">High</option>
-        <option value="Medium">Medium</option>
-        <option value="Low">Low</option>
-      </select>
-      <button class="btn btn-orange" onclick="openAddWatch()">+ ADD TO WATCHLIST</button>
-    </div>
+    <div class="watchlist-grid" id="watchlistGrid"></div>
   </div>
-  <div class="watchlist-grid" id="watchlistGrid"></div>
 </div>
 
 <!-- WATCHLIST MODAL -->
@@ -353,6 +448,8 @@ textarea { resize: vertical; min-height: 70px; }
     </div>
   </div>
 </div>
+
+<!-- ADD / EDIT COMPANY MODAL -->
 <div class="overlay" id="companyModal">
   <div class="modal">
     <div class="modal-hdr">
@@ -360,11 +457,43 @@ textarea { resize: vertical; min-height: 70px; }
       <button class="btn btn-xs" onclick="closeModal('companyModal')">✕</button>
     </div>
     <div class="modal-body">
-      <div class="fg"><label>Company Name *</label><input id="m_company" type="text" placeholder="e.g. Nordea, EPAM, Vonage"></div>
-      <div class="fg"><label>Role / Position</label><input id="m_role" type="text" placeholder="e.g. Senior Cloud Engineer"></div>
-      <div class="fg"><label>Location</label><input id="m_location" type="text" placeholder="e.g. Warsaw / Remote / Gdańsk"></div>
-      <div class="fg"><label>Job URL</label><input id="m_url" type="url" placeholder="https://..."></div>
+
+      <div class="modal-section-divider">Basic Info</div>
+      <div class="fg"><label>Company Name *</label><input id="m_company" type="text" placeholder="e.g. Nordea, EPAM, Cloudflare"></div>
+      <div class="fg-row">
+        <div class="fg" style="margin-bottom:0"><label>Role / Position</label><input id="m_role" type="text" placeholder="e.g. Senior Cloud Engineer"></div>
+        <div class="fg" style="margin-bottom:0"><label>Location</label><input id="m_location" type="text" placeholder="Warsaw / Remote"></div>
+      </div>
+      <div class="fg" style="margin-top:12px"><label>Job Posting URL</label><input id="m_url" type="url" placeholder="https://..."></div>
       <div class="fg"><label>Date Applied</label><input id="m_date" type="date"></div>
+
+      <div class="modal-section-divider">Compensation</div>
+      <div class="fg-row">
+        <div class="fg" style="margin-bottom:0"><label>Salary Range <span class="opt-tag">offered</span></label><input id="m_salary" type="text" placeholder="e.g. €70,000 – €90,000"></div>
+        <div class="fg" style="margin-bottom:0"><label>Expected CTC <span class="opt-tag">your ask</span></label><input id="m_ctc" type="text" placeholder="e.g. €85,000"></div>
+      </div>
+
+      <div class="modal-section-divider" style="margin-top:12px">Contact & Interview</div>
+      <div class="fg"><label>Recruiter / Contact Name <span class="opt-tag">optional</span></label><input id="m_recruiter" type="text" placeholder="e.g. Anna Kowalski · anna@company.com"></div>
+      <div class="fg"><label>Next Interview Date <span class="opt-tag">optional</span></label><input id="m_interview_date" type="date"></div>
+
+      <div class="modal-section-divider">Documents <span class="opt-tag" style="font-size:8px;letter-spacing:.04em">stored as text · safe on free Supabase</span></div>
+      <button type="button" class="collapse-btn" onclick="toggleCollapse('jd-collapse',this)">
+        <span>▸ Job Description — paste JD to keep it after link expires</span>
+        <span style="font-size:9px;color:var(--muted)">optional</span>
+      </button>
+      <div class="collapse-content" id="jd-collapse">
+        <div class="fg"><textarea id="m_jd" placeholder="Paste the full job description here. The posting link often disappears — this keeps a permanent copy." rows="5"></textarea></div>
+      </div>
+
+      <button type="button" class="collapse-btn" style="margin-top:8px" onclick="toggleCollapse('cv-collapse',this)">
+        <span>▸ CV / Tailoring Notes — what did you customise for this role?</span>
+        <span style="font-size:9px;color:var(--muted)">optional</span>
+      </button>
+      <div class="collapse-content" id="cv-collapse">
+        <div class="fg"><textarea id="m_cvnotes" placeholder="e.g. Emphasised banking experience. Removed Azure section. Added NAT Gateway cost reduction bullet." rows="4"></textarea></div>
+      </div>
+
     </div>
     <div class="modal-foot">
       <button class="btn" onclick="closeModal('companyModal')">CANCEL</button>
@@ -381,7 +510,7 @@ textarea { resize: vertical; min-height: 70px; }
       <button class="btn btn-xs" onclick="closeModal('rejectModal')">✕</button>
     </div>
     <div class="modal-body">
-      <div style="font-size:13px;color:var(--muted2)">Select rejection type:</div>
+      <div style="font-size:13px;color:var(--muted2);margin-bottom:12px">Select rejection type:</div>
       <div class="rej-options">
         <div class="rej-opt" onclick="selectRej('ATS')" id="rej-ATS">
           <div class="rej-radio"></div>
@@ -393,7 +522,11 @@ textarea { resize: vertical; min-height: 70px; }
         </div>
         <div class="rej-opt" onclick="selectRej('Technical')" id="rej-Technical">
           <div class="rej-radio"></div>
-          <div><div class="rej-opt-label">⚙️ Technical Rejection</div><div class="rej-opt-desc">Failed technical interview / coding round</div></div>
+          <div><div class="rej-opt-label">⚙️ Technical Rejection</div><div class="rej-opt-desc">Failed technical interview or assessment</div></div>
+        </div>
+        <div class="rej-opt" onclick="selectRej('Manager')" id="rej-Manager">
+          <div class="rej-radio"></div>
+          <div><div class="rej-opt-label">👔 Manager Rejection</div><div class="rej-opt-desc">Rejected after manager / leadership round</div></div>
         </div>
         <div class="rej-opt" onclick="selectRej('Culture Fit')" id="rej-Culture Fit">
           <div class="rej-radio"></div>
@@ -404,7 +537,7 @@ textarea { resize: vertical; min-height: 70px; }
           <div><div class="rej-opt-label">❓ No Feedback</div><div class="rej-opt-desc">Ghosted or rejected without reason given</div></div>
         </div>
       </div>
-      <div class="fg"><label>Notes (optional)</label><textarea id="rejNote" placeholder="What feedback did you get? What to improve next time?"></textarea></div>
+      <div class="fg" style="margin-top:14px"><label>Notes (optional)</label><textarea id="rejNote" placeholder="What feedback did you get? What to improve next time?"></textarea></div>
     </div>
     <div class="modal-foot">
       <button class="btn" onclick="closeModal('rejectModal')">CANCEL</button>
@@ -414,10 +547,18 @@ textarea { resize: vertical; min-height: 70px; }
 </div>
 
 <script>
-// —— App runs on localStorage first. Supabase loads after so the UI always works. ——
-const STAGES = ['Applied','HR','Tech 1','Tech 2','CEO','Offer','Accepted'];
-const ABBR = {'Applied':'APP','HR':'HR','Tech 1':'T-1','Tech 2':'T-2','CEO':'CEO','Offer':'OFR','Accepted':'✓'};
-const SCOL = {'Applied':'var(--c-apply)','HR':'var(--c-hr)','Tech 1':'var(--c-t1)','Tech 2':'var(--c-t2)','CEO':'var(--c-ceo)','Offer':'var(--c-offer)','Accepted':'var(--c-accepted)','Rejected':'var(--c-rejected)'};
+const STAGES = ['Applied','HR','Technical','Manager','Cultural Fit','Offer','Accepted'];
+const ABBR = {'Applied':'APP','HR':'HR','Technical':'TECH','Manager':'MGR','Cultural Fit':'CULT','Offer':'OFR','Accepted':'✓'};
+const SCOL = {
+  'Applied':'var(--c-apply)',
+  'HR':'var(--c-hr)',
+  'Technical':'var(--c-technical)',
+  'Manager':'var(--c-manager)',
+  'Cultural Fit':'var(--c-cultfit)',
+  'Offer':'var(--c-offer)',
+  'Accepted':'var(--c-accepted)',
+  'Rejected':'var(--c-rejected)'
+};
 
 var useSupabase = false;
 var supabase = null;
@@ -449,6 +590,7 @@ async function saveWatch2() {
   }
   localStorage.setItem('jpt3_watch', JSON.stringify(watchlist));
 }
+
 const uid = () => Date.now().toString(36) + Math.random().toString(36).slice(2,6);
 const today = () => new Date().toISOString().split('T')[0];
 const fmt = d => d ? new Date(d).toLocaleDateString('en-GB',{day:'2-digit',month:'short',year:'numeric'}) : '—';
@@ -457,12 +599,22 @@ const getC = id => data.find(c=>c.id===id);
 const lastAttempt = c => c.attempts[c.attempts.length-1];
 const activeStage = c => { const a=lastAttempt(c); return a?.rejected?'Rejected':(a?.currentStage||'—'); };
 
+// ── COLLAPSE TOGGLE ──
+function toggleCollapse(id, btn) {
+  const el = document.getElementById(id);
+  const isOpen = el.classList.toggle('open');
+  const arrow = btn.querySelector('span:first-child');
+  if (arrow) arrow.textContent = arrow.textContent.replace(isOpen ? '▸' : '▾', isOpen ? '▾' : '▸');
+}
+
 // ── COMPANY OPS ──
 function openAddCompany() {
   editingId = null;
   document.getElementById('compModalTitle').textContent = 'ADD COMPANY';
-  ['m_company','m_role','m_location','m_url'].forEach(id=>document.getElementById(id).value='');
+  ['m_company','m_role','m_location','m_url','m_salary','m_ctc','m_recruiter','m_jd','m_cvnotes'].forEach(id=>document.getElementById(id).value='');
   document.getElementById('m_date').value = today();
+  document.getElementById('m_interview_date').value = '';
+  ['jd-collapse','cv-collapse'].forEach(id=>{ const el=document.getElementById(id); el.classList.remove('open'); });
   document.getElementById('companyModal').classList.add('open');
 }
 
@@ -473,7 +625,15 @@ function openEditCompany(id) {
   document.getElementById('m_role').value = c.role||'';
   document.getElementById('m_location').value = c.location||'';
   document.getElementById('m_url').value = c.url||'';
+  document.getElementById('m_salary').value = c.salaryRange||'';
+  document.getElementById('m_ctc').value = c.expectedCtc||'';
+  document.getElementById('m_recruiter').value = c.recruiter||'';
+  document.getElementById('m_interview_date').value = c.interviewDate||'';
+  document.getElementById('m_jd').value = c.jobDescription||'';
+  document.getElementById('m_cvnotes').value = c.cvNotes||'';
   document.getElementById('m_date').value = c.attempts[0]?.startDate||today();
+  if (c.jobDescription) document.getElementById('jd-collapse').classList.add('open');
+  if (c.cvNotes) document.getElementById('cv-collapse').classList.add('open');
   document.getElementById('companyModal').classList.add('open');
 }
 
@@ -486,23 +646,39 @@ function openAddAnotherRole(cid) {
   document.getElementById('m_role').value = '';
   document.getElementById('m_location').value = c.location||'';
   document.getElementById('m_url').value = '';
+  document.getElementById('m_salary').value = '';
+  document.getElementById('m_ctc').value = c.expectedCtc||'';
+  document.getElementById('m_recruiter').value = '';
+  document.getElementById('m_interview_date').value = '';
+  document.getElementById('m_jd').value = '';
+  document.getElementById('m_cvnotes').value = '';
   document.getElementById('m_date').value = today();
+  ['jd-collapse','cv-collapse'].forEach(id=>document.getElementById(id).classList.remove('open'));
   document.getElementById('companyModal').classList.add('open');
 }
 
 function saveCompany() {
   const name = document.getElementById('m_company').value.trim();
   if(!name){alert('Company name required');return;}
+  const fields = {
+    name,
+    role: document.getElementById('m_role').value,
+    location: document.getElementById('m_location').value,
+    url: document.getElementById('m_url').value,
+    salaryRange: document.getElementById('m_salary').value,
+    expectedCtc: document.getElementById('m_ctc').value,
+    recruiter: document.getElementById('m_recruiter').value,
+    interviewDate: document.getElementById('m_interview_date').value,
+    jobDescription: document.getElementById('m_jd').value,
+    cvNotes: document.getElementById('m_cvnotes').value,
+  };
   if(editingId) {
-    const c = getC(editingId);
-    Object.assign(c, {name, role:document.getElementById('m_role').value, location:document.getElementById('m_location').value, url:document.getElementById('m_url').value});
+    Object.assign(getC(editingId), fields);
   } else {
     const dt = document.getElementById('m_date').value||today();
     const company = {
-      id:uid(), name,
-      role:document.getElementById('m_role').value,
-      location:document.getElementById('m_location').value,
-      url:document.getElementById('m_url').value,
+      id: uid(),
+      ...fields,
       attempts:[{
         id:uid(), startDate:dt, currentStage:'Applied',
         stageHistory:[{stage:'Applied',date:dt}],
@@ -560,7 +736,8 @@ function openReject(cid) {
 function selectRej(type) {
   selectedRejType=type;
   document.querySelectorAll('.rej-opt').forEach(e=>e.classList.remove('selected'));
-  document.getElementById('rej-'+type).classList.add('selected');
+  const el = document.getElementById('rej-'+type);
+  if(el) el.classList.add('selected');
 }
 
 function confirmReject() {
@@ -593,65 +770,73 @@ function deleteComment(cid, aid, cmid) {
   save(); renderDetail(cid);
 }
 
+// ── DOC SECTION TOGGLE (in detail view) ──
+function toggleDocSection(bodyId, btn) {
+  const body = document.getElementById(bodyId);
+  const isOpen = body.classList.toggle('open');
+  btn.classList.toggle('open', isOpen);
+}
+
 // ── RENDER ──
-function renderAll() { renderSummary(); renderSidebar(); if(selectedId) renderDetail(selectedId); }
 function refreshAll() {
-  renderAll();
+  renderSummary();
+  renderSidebar();
+  if(selectedId) renderDetail(selectedId);
   renderWatchlist();
   updateBadges();
-  requestAnimationFrame(function() { updateBadges(); });
 }
 
 function renderSummary() {
-  const total=data.length;
-  const active=data.filter(c=>{const a=lastAttempt(c);return a&&!a.rejected&&a.currentStage!=='Accepted';}).length;
-  const accepted=data.filter(c=>{const a=lastAttempt(c);return a?.currentStage==='Accepted';}).length;
-  const rejected=data.filter(c=>{const a=lastAttempt(c);return a?.rejected;}).length;
-  const interviews=data.filter(c=>{const a=lastAttempt(c);return a&&!a.rejected&&['Tech 1','Tech 2','CEO'].includes(a.currentStage);}).length;
-  const offers=data.filter(c=>{const a=lastAttempt(c);return a&&!a.rejected&&['Offer','Accepted'].includes(a.currentStage);}).length;
+  const total = data.length;
+  const active = data.filter(c=>{const a=lastAttempt(c);return a&&!a.rejected&&a.currentStage!=='Accepted';}).length;
+  const accepted = data.filter(c=>{const a=lastAttempt(c);return a?.currentStage==='Accepted';}).length;
+  const rejected = data.filter(c=>{const a=lastAttempt(c);return a?.rejected;}).length;
+  const interviews = data.filter(c=>{const a=lastAttempt(c);return a&&!a.rejected&&['Technical','Manager','Cultural Fit'].includes(a.currentStage);}).length;
+  const offers = data.filter(c=>{const a=lastAttempt(c);return a&&!a.rejected&&['Offer','Accepted'].includes(a.currentStage);}).length;
 
-  var bp=document.getElementById('badge-pipeline'),bw=document.getElementById('badge-watchlist');
-  if(bp)bp.textContent=total;
-  if(bw)bw.textContent=(watchlist&&watchlist.length)||0;
+  // Update stat cells
+  const set = (id, val) => { const el=document.getElementById(id); if(el) el.textContent=val; };
+  set('sn-total', total); set('sn-active', active); set('sn-interviews', interviews);
+  set('sn-offers', offers); set('sn-accepted', accepted); set('sn-rejected', rejected);
 
-  var donutEl=document.getElementById('dashboardDonut');
-  if(donutEl){
-    if(total===0){
-      donutEl.style.background='var(--border2)';
-      donutEl.setAttribute('title','0 applications');
-      donutEl.innerHTML='<span class="donut-center">0</span>';
+  // Update donut
+  const donut = document.getElementById('statsDonut');
+  const donutNum = document.getElementById('statsDonutNum');
+  if(donut && donutNum) {
+    donutNum.textContent = total;
+    if(total === 0) {
+      donut.style.background = 'var(--border2)';
     } else {
-      var aDeg=(active/total)*360, rDeg=(rejected/total)*360, gDeg=(accepted/total)*360;
-      donutEl.style.background=`conic-gradient(var(--blue) 0deg ${aDeg}deg, var(--red) ${aDeg}deg ${aDeg+rDeg}deg, var(--gold) ${aDeg+rDeg}deg 360deg)`;
-      donutEl.setAttribute('title',`${active} in progress · ${rejected} rejected · ${accepted} accepted`);
-      donutEl.innerHTML='<span class="donut-center">'+total+'</span>';
+      const aDeg=(active/total)*360, rDeg=(rejected/total)*360;
+      donut.style.background = `conic-gradient(var(--blue) 0deg ${aDeg}deg, var(--red) ${aDeg}deg ${aDeg+rDeg}deg, var(--gold) ${aDeg+rDeg}deg 360deg)`;
     }
   }
-  var ds=document.getElementById('dashboardStats');
-  if(ds)ds.innerHTML=[
-    ['Applied','total',total,'var(--text)'],
-    ['In progress','active',active,'var(--blue)'],
-    ['Rejected','rejected',rejected,'var(--red)'],
-    ['Accepted','accepted',accepted,'var(--gold)']
-  ].map(([l,typ,n,col])=>`<button type="button" class="dash-stat" onclick="applySummaryFilter('${typ}')" title="Show ${l} in list"><span class="dash-stat-n" style="color:${col}">${n}</span><span class="dash-stat-l">${l}</span></button>`).join('');
+  const legend = document.getElementById('statsLegend');
+  if(legend) legend.innerHTML = [
+    ['var(--blue)', active+' active'],
+    ['var(--red)', rejected+' rejected'],
+    ['var(--gold)', accepted+' accepted'],
+  ].map(([col,txt])=>`<div class="legend-row"><div class="legend-dot" style="background:${col}"></div>${txt}</div>`).join('');
 
-  var sb=document.getElementById('summaryBar');
-  if(sb)sb.innerHTML=[
-    ['TOTAL','total',total,'var(--text)'],['ACTIVE','active',active,'var(--blue)'],
-    ['INTERVIEWS','interviews',interviews,'var(--c-t1)'],['OFFERS','offers',offers,'var(--c-offer)'],
-    ['ACCEPTED','accepted',accepted,'var(--gold)'],['REJECTED','rejected',rejected,'var(--red)']
-  ].map(([l,typ,n,col])=>`<button type="button" class="sum-cell sum-cell-btn" onclick="applySummaryFilter('${typ}')" title="Show ${l} in list"><div class="sum-n" style="color:${col}">${n}</div><div class="sum-l">${l}</div></button>`).join('');
+  updateBadges();
+}
+
+function updateBadges() {
+  const bp = document.getElementById('badge-pipeline');
+  const bw = document.getElementById('badge-watchlist');
+  if(bp) bp.textContent = (data&&data.length)||0;
+  if(bw) bw.textContent = (watchlist&&watchlist.length)||0;
 }
 
 function renderSidebar() {
-  const q=document.getElementById('sideSearch').value.toLowerCase();
-  const sf=document.getElementById('stageFilter').value;
-  const rf=document.getElementById('statusFilter').value;
-  const filtered=data.filter(c=>{
+  const q = document.getElementById('sideSearch').value.toLowerCase();
+  const sf = document.getElementById('stageFilter').value;
+  const rf = document.getElementById('statusFilter').value;
+  const filtered = data.filter(c=>{
     if(q&&!c.name.toLowerCase().includes(q)&&!(c.role||'').toLowerCase().includes(q)) return false;
     const stage=activeStage(c);
     const a=lastAttempt(c);
-    if(sf==='interviews'){ if(!['Tech 1','Tech 2','CEO'].includes(stage)||a?.rejected) return false; }
+    if(sf==='interviews'){ if(!['Technical','Manager','Cultural Fit'].includes(stage)||a?.rejected) return false; }
     else if(sf==='offers'){ if(!['Offer','Accepted'].includes(stage)||a?.rejected) return false; }
     else if(sf&&stage!==sf) return false;
     if(rf==='active'&&(a?.rejected||a?.currentStage==='Accepted')) return false;
@@ -659,12 +844,16 @@ function renderSidebar() {
     if(rf==='accepted'&&a?.currentStage!=='Accepted') return false;
     return true;
   });
-  const el=document.getElementById('companyList');
+  const el = document.getElementById('companyList');
   if(!el) return;
-  if(!filtered.length){el.innerHTML=`<div style="padding:24px;text-align:center;color:var(--muted);font-family:JetBrains Mono,monospace;font-size:10px">NO RESULTS</div>`;return;}
-  el.innerHTML=filtered.map(c=>{
+  if(!filtered.length){
+    el.innerHTML=`<div style="padding:24px;text-align:center;color:var(--muted);font-family:JetBrains Mono,monospace;font-size:10px">NO RESULTS</div>`;
+    return;
+  }
+  el.innerHTML = filtered.map(c=>{
     const stage=activeStage(c), col=SCOL[stage]||'var(--muted)';
     const att=c.attempts.length;
+    const hasInterview = c.interviewDate && !lastAttempt(c)?.rejected;
     return `<div class="company-row ${selectedId===c.id?'active':''}" onclick="selectCompany('${c.id}')">
       <div style="display:flex;justify-content:space-between;align-items:center">
         <div class="cr-name">${esc(c.name)}</div>
@@ -674,6 +863,7 @@ function renderSidebar() {
       <div class="cr-bottom">
         <div class="cr-dot" style="background:${col}"></div>
         <span style="font-family:JetBrains Mono,monospace;font-size:9px;font-weight:700;color:${col}">${stage.toUpperCase()}</span>
+        ${hasInterview?`<span style="font-family:JetBrains Mono,monospace;font-size:8px;color:var(--blue);margin-left:4px">📅 ${fmt(c.interviewDate)}</span>`:''}
       </div>
     </div>`;
   }).join('');
@@ -683,13 +873,11 @@ function selectCompany(id) { selectedId=id; renderSidebar(); renderDetail(id); }
 
 function applySummaryFilter(type) {
   switchView('pipeline');
-  var stageEl=document.getElementById('stageFilter');
-  var statusEl=document.getElementById('statusFilter');
+  const stageEl=document.getElementById('stageFilter');
+  const statusEl=document.getElementById('statusFilter');
   if(!stageEl||!statusEl) return;
-  stageEl.value='';
-  statusEl.value='';
-  if(type==='total') { stageEl.value=''; statusEl.value=''; }
-  else if(type==='active') statusEl.value='active';
+  stageEl.value=''; statusEl.value='';
+  if(type==='active') statusEl.value='active';
   else if(type==='rejected') statusEl.value='rejected';
   else if(type==='accepted') statusEl.value='accepted';
   else if(type==='interviews') stageEl.value='interviews';
@@ -698,42 +886,94 @@ function applySummaryFilter(type) {
 }
 
 function renderDetail(id) {
-  const c=getC(id);
+  const c = getC(id);
   if(!c) return;
-  const el=document.getElementById('detailPanel');
+  const el = document.getElementById('detailPanel');
   if(!el) return;
-  const a=lastAttempt(c);
-  const isRej=a?.rejected, isAcc=a?.currentStage==='Accepted';
+  const a = lastAttempt(c);
+  const isRej = a?.rejected, isAcc = a?.currentStage==='Accepted';
 
-  let html=`<div class="det-header">
+  // Interview soon badge (within 7 days)
+  let interviewBadge = '';
+  if(c.interviewDate && !isRej && !isAcc) {
+    const diff = Math.ceil((new Date(c.interviewDate) - new Date()) / (1000*60*60*24));
+    if(diff >= 0 && diff <= 7) {
+      const label = diff === 0 ? 'TODAY' : diff === 1 ? 'TOMORROW' : `IN ${diff} DAYS`;
+      interviewBadge = `<div class="interview-soon-badge">📅 INTERVIEW ${label} · ${fmt(c.interviewDate)}</div>`;
+    }
+  }
+
+  const v = (val, cls='') => val
+    ? `<div class="det-field-value ${cls}">${esc(val)}</div>`
+    : `<div class="det-field-value empty">— not set</div>`;
+
+  let html = `<div class="det-header">
     <div>
       <div class="det-name">${esc(c.name)}</div>
       <div class="det-meta">${esc([c.role,c.location].filter(Boolean).join(' · '))}</div>
       ${c.url?`<a href="${c.url}" target="_blank" style="font-family:JetBrains Mono,monospace;font-size:10px;color:var(--accent);text-decoration:none;margin-top:4px;display:inline-block">↗ JOB POSTING</a>`:''}
     </div>
     <div class="det-actions">
-      <button type="button" class="btn btn-xs" onclick="openAddAnotherRole('${c.id}')" title="Apply for another role at this organization">+ ANOTHER ROLE HERE</button>
-      <button class="btn btn-xs" onclick="openEditCompany('${c.id}')">EDIT INFO</button>
+      <button type="button" class="btn btn-xs" onclick="openAddAnotherRole('${c.id}')">+ ANOTHER ROLE</button>
+      <button class="btn btn-xs" onclick="openEditCompany('${c.id}')">EDIT</button>
       ${(isRej||isAcc)?`<button class="btn btn-xs btn-green" onclick="reapply('${c.id}')">↺ REAPPLY</button>`:''}
       <button class="btn btn-xs btn-red" onclick="deleteCompany('${c.id}')">✕ DELETE</button>
     </div>
   </div>`;
 
-  html+=`<div class="sec-title">CURRENT PIPELINE — ATTEMPT #${c.attempts.length}</div>`;
-  html+=buildAttemptCard(c, a, c.attempts.length, true);
+  // Fields grid
+  html += `<div class="det-fields">
+    <div class="det-field"><div class="det-field-label">Salary Range</div>${v(c.salaryRange,'salary')}</div>
+    <div class="det-field"><div class="det-field-label">Expected CTC</div>${v(c.expectedCtc,'salary')}</div>
+    <div class="det-field"><div class="det-field-label">Recruiter / Contact</div>${v(c.recruiter,'recruiter-val')}</div>
+    <div class="det-field"><div class="det-field-label">Next Interview</div>${v(c.interviewDate ? fmt(c.interviewDate) : '','date-val')}</div>
+    <div class="det-field"><div class="det-field-label">Applied</div>${v(a?.startDate ? fmt(a.startDate) : '')}</div>
+    <div class="det-field"><div class="det-field-label">Attempts</div><div class="det-field-value">${c.attempts.length}</div></div>
+  </div>`;
 
-  if(c.attempts.length>1) {
-    html+=`<div class="sec-title" style="margin-top:20px">PREVIOUS ATTEMPTS (${c.attempts.length-1})</div>`;
-    for(let i=c.attempts.length-2;i>=0;i--) html+=buildAttemptCard(c,c.attempts[i],i+1,false);
+  if(interviewBadge) html += interviewBadge;
+
+  // JD section
+  if(c.jobDescription || c.cvNotes) {
+    if(c.jobDescription) {
+      const bodyId = 'jd-body-'+c.id;
+      html += `<div class="doc-section">
+        <button class="doc-toggle" onclick="toggleDocSection('${bodyId}',this)">
+          <span>JOB DESCRIPTION</span><span class="doc-toggle-arrow">▾</span>
+        </button>
+        <div class="doc-body open" id="${bodyId}">
+          <div class="doc-text">${esc(c.jobDescription)}</div>
+        </div>
+      </div>`;
+    }
+    if(c.cvNotes) {
+      const bodyId = 'cv-body-'+c.id;
+      html += `<div class="doc-section">
+        <button class="doc-toggle" onclick="toggleDocSection('${bodyId}',this)">
+          <span>CV / TAILORING NOTES</span><span class="doc-toggle-arrow">▾</span>
+        </button>
+        <div class="doc-body open" id="${bodyId}">
+          <div class="doc-text">${esc(c.cvNotes)}</div>
+        </div>
+      </div>`;
+    }
   }
-  el.innerHTML=html;
+
+  html += `<div class="sec-title">CURRENT PIPELINE — ATTEMPT #${c.attempts.length}</div>`;
+  html += buildAttemptCard(c, a, c.attempts.length, true);
+
+  if(c.attempts.length > 1) {
+    html += `<div class="sec-title" style="margin-top:20px">PREVIOUS ATTEMPTS (${c.attempts.length-1})</div>`;
+    for(let i=c.attempts.length-2;i>=0;i--) html += buildAttemptCard(c,c.attempts[i],i+1,false);
+  }
+  el.innerHTML = html;
 }
 
 function buildAttemptCard(c, a, num, isCurrent) {
-  const stageIdx=STAGES.indexOf(a.currentStage);
-  const nextStage=!a.rejected&&a.currentStage!=='Accepted'?STAGES[stageIdx+1]:null;
+  const stageIdx = STAGES.indexOf(a.currentStage);
+  const nextStage = !a.rejected&&a.currentStage!=='Accepted' ? STAGES[stageIdx+1] : null;
 
-  const header=`<div class="attempt-header">
+  const header = `<div class="attempt-header">
     <div>
       <div class="att-label">ATTEMPT #${num} ${isCurrent?'<span style="color:var(--accent);font-size:9px">● CURRENT</span>':''}</div>
       <div class="att-date">Started: ${fmt(a.startDate)}</div>
@@ -745,37 +985,34 @@ function buildAttemptCard(c, a, num, isCurrent) {
     </div>
   </div>`;
 
-  // Flow (click next stage to advance)
-  let flow=`<div class="pipeline-flow"><div class="flow-stages">`;
+  let flow = `<div class="pipeline-flow"><div class="flow-stages">`;
   STAGES.forEach((stage,i)=>{
-    const rejIdx=a.rejected?STAGES.indexOf(a.rejectionStage):-1;
-    let bClass='pending';
+    const rejIdx = a.rejected ? STAGES.indexOf(a.rejectionStage) : -1;
+    let bClass = 'pending';
     if(a.rejected&&i<rejIdx) bClass='done';
     else if(a.rejected&&i===rejIdx) bClass='rejected-stage';
     else if(!a.rejected&&i<stageIdx) bClass='done';
     else if(!a.rejected&&i===stageIdx) bClass=stage==='Accepted'?'accepted-stage':'current-stage';
-    const nActive=bClass!=='pending';
-    const connDone=!a.rejected&&i<stageIdx;
-    const connRej=a.rejected&&i<rejIdx;
-    const isNext=isCurrent&&!a.rejected&&a.currentStage!=='Accepted'&&i===stageIdx+1;
-    const clickAdvance=isNext?` onclick="advanceStage('${String(c.id).replace(/'/g,"\\'")}')" style="cursor:pointer" title="Click to advance to ${stage}"`:'';
-    flow+=`<div class="flow-stage"><div class="stage-node"${clickAdvance}>
+    const nActive = bClass!=='pending';
+    const connDone = !a.rejected&&i<stageIdx;
+    const connRej = a.rejected&&i<rejIdx;
+    const isNext = isCurrent&&!a.rejected&&a.currentStage!=='Accepted'&&i===stageIdx+1;
+    const clickAdvance = isNext?` onclick="advanceStage('${String(c.id).replace(/'/g,"\\'")}')" style="cursor:pointer" title="Click to advance to ${stage}"`:'';
+    flow += `<div class="flow-stage"><div class="stage-node"${clickAdvance}>
       <div class="stage-bubble ${bClass}">${ABBR[stage]}</div>
       <div class="stage-name ${nActive?'active':''}">${stage}</div>
     </div></div>`;
     if(i<STAGES.length-1) flow+=`<div class="flow-connector ${connDone?'done':''} ${connRej?'rejected-line':''}"></div>`;
   });
-  flow+=`</div></div>`;
+  flow += `</div></div>`;
 
-  // Rejection info
-  let rejInfo='';
+  let rejInfo = '';
   if(a.rejected) {
-    rejInfo=`<div class="rej-badge">✕ REJECTED AT ${(a.rejectionStage||'').toUpperCase()} · ${(a.rejectionType||'').toUpperCase()}</div>`;
-    if(a.rejectionNote) rejInfo+=`<div style="font-size:12px;color:var(--muted2);padding:4px 14px 8px;font-style:italic">"${esc(a.rejectionNote)}"</div>`;
+    rejInfo = `<div class="rej-badge">✕ REJECTED AT ${(a.rejectionStage||'').toUpperCase()} · ${(a.rejectionType||'').toUpperCase()}</div>`;
+    if(a.rejectionNote) rejInfo += `<div style="font-size:12px;color:var(--muted2);padding:4px 14px 8px;font-style:italic">"${esc(a.rejectionNote)}"</div>`;
   }
 
-  // Stage log
-  const log=`<div class="stage-log">
+  const log = `<div class="stage-log">
     <div class="stage-log-title">STAGE LOG</div>
     <div class="stage-chips">${(a.stageHistory||[]).map(h=>{
       const col=SCOL[h.stage]||'var(--muted)';
@@ -783,9 +1020,8 @@ function buildAttemptCard(c, a, num, isCurrent) {
     }).join('')}</div>
   </div>`;
 
-  // Comments
-  const coms=a.comments||[];
-  const comments=`<div class="comments-section">
+  const coms = a.comments||[];
+  const comments = `<div class="comments-section">
     <div class="comments-title">NOTES & COMMENTS (${coms.length})</div>
     <div class="comment-thread">${coms.map(cm=>`
       <div class="comment">
@@ -797,36 +1033,37 @@ function buildAttemptCard(c, a, num, isCurrent) {
       </div>`).join('')}
     </div>
     ${isCurrent?`<div class="add-comment">
-      <textarea class="comment-input" id="ci_${a.id}" placeholder="Add notes, feedback, prep thoughts..." rows="2"></textarea>
+      <textarea class="comment-input" id="ci_${a.id}" placeholder="Add notes, feedback, prep thoughts... (Ctrl+Enter to save)" rows="2"></textarea>
       <button class="btn btn-xs btn-green" style="align-self:flex-end;padding:8px 12px" onclick="addComment('${c.id}','${a.id}')">ADD</button>
     </div>`:''}
   </div>`;
 
-  const cardClass=`attempt-card ${isCurrent?'current':''} ${a.rejected?'rejected-card':''}`;
+  const cardClass = `attempt-card ${isCurrent?'current':''} ${a.rejected?'rejected-card':''}`;
   return `<div class="${cardClass}">${header}${flow}${rejInfo}${log}${comments}</div>`;
 }
 
+// ── EXPORT ──
 function exportData() {
-  const rows=[['Company','Role','Location','Attempt#','Stage','Rejected','Rejection Type','Rejection Stage','Rejection Note','Started','Comments']];
+  const rows = [['Type','Company','Role','Location','Salary Range','Expected CTC','Recruiter','Interview Date','Attempt#','Stage','Rejected','Rejection Type','Rejection Stage','Rejection Note','Started','Comments']];
   data.forEach(c=>c.attempts.forEach((a,i)=>{
-    rows.push([c.name,c.role||'',c.location||'',i+1,a.currentStage,a.rejected?'Yes':'No',a.rejectionType||'',a.rejectionStage||'',a.rejectionNote||'',a.startDate,(a.comments||[]).map(x=>x.text).join(' | ')]);
+    rows.push(['Pipeline',c.name,c.role||'',c.location||'',c.salaryRange||'',c.expectedCtc||'',c.recruiter||'',c.interviewDate||'',i+1,a.currentStage,a.rejected?'Yes':'No',a.rejectionType||'',a.rejectionStage||'',a.rejectionNote||'',a.startDate,(a.comments||[]).map(x=>x.text).join(' | ')]);
   }));
-  const csv=rows.map(r=>r.map(v=>`"${String(v).replace(/"/g,'""')}"`).join(',')).join('\n');
-  const el=document.createElement('a');
-  el.href='data:text/csv;charset=utf-8,'+encodeURIComponent(csv);
-  el.download=`pipeline_${today()}.csv`;
+  // Include watchlist
+  rows.push([]);
+  rows.push(['Type','Company','Role','Priority','Career URL','Notes','Added Date','','','','','','','','','']);
+  watchlist.forEach(w=>{
+    rows.push(['Watchlist',w.name,w.role||'',w.priority||'',w.url||'',w.note||'',w.addedDate||'','','','','','','','','','']);
+  });
+  const csv = rows.map(r=>r.map(v=>`"${String(v).replace(/"/g,'""')}"`).join(',')).join('\n');
+  const el = document.createElement('a');
+  el.href = 'data:text/csv;charset=utf-8,'+encodeURIComponent(csv);
+  el.download = `pipeline_${today()}.csv`;
   el.click();
 }
 
-// Full backup (pipeline + watchlist) — save this file to keep your data safe
 function exportBackup() {
-  const backup = {
-    version: 1,
-    exportedAt: new Date().toISOString(),
-    pipeline: data,
-    watchlist: watchlist
-  };
-  const blob = new Blob([JSON.stringify(backup, null, 2)], { type: 'application/json' });
+  const backup = { version:2, exportedAt:new Date().toISOString(), pipeline:data, watchlist };
+  const blob = new Blob([JSON.stringify(backup,null,2)], {type:'application/json'});
   const a = document.createElement('a');
   a.href = URL.createObjectURL(blob);
   a.download = `job-pipeline-backup_${today()}.json`;
@@ -836,30 +1073,18 @@ function exportBackup() {
 
 function importBackup(ev) {
   const file = ev.target.files?.[0];
-  if (!file) return;
+  if(!file) return;
   const reader = new FileReader();
   reader.onload = async () => {
     try {
       const backup = JSON.parse(reader.result);
       const pipeline = Array.isArray(backup.pipeline) ? backup.pipeline : [];
       const watch = Array.isArray(backup.watchlist) ? backup.watchlist : [];
-      if (!pipeline.length && !watch.length && (backup.pipeline !== undefined || backup.watchlist !== undefined)) {
-        if (!confirm('This backup has no pipeline or watchlist data. Replace current data with empty?')) { ev.target.value = ''; return; }
-      } else if (!confirm(`Restore backup from ${backup.exportedAt ? new Date(backup.exportedAt).toLocaleString() : 'unknown date'}? This will replace your current data.`)) {
-        ev.target.value = '';
-        return;
-      }
-      data = pipeline;
-      watchlist = watch;
-      selectedId = null;
-      await save();
-      await saveWatch2();
-      renderAll();
-      ev.target.value = '';
-    } catch (e) {
-      alert('Invalid backup file. ' + (e.message || ''));
-      ev.target.value = '';
-    }
+      if(!confirm(`Restore backup from ${backup.exportedAt ? new Date(backup.exportedAt).toLocaleString() : 'unknown date'}? This will replace your current data.`)) { ev.target.value=''; return; }
+      data = pipeline; watchlist = watch; selectedId = null;
+      await save(); await saveWatch2();
+      refreshAll(); ev.target.value='';
+    } catch(e) { alert('Invalid backup file. '+(e.message||'')); ev.target.value=''; }
   };
   reader.readAsText(file);
 }
@@ -868,16 +1093,16 @@ function importBackup(ev) {
 let editingWatchId = null;
 
 function switchView(view) {
-  document.getElementById('view-pipeline').style.display = view==='pipeline' ? '' : 'none';
+  document.getElementById('view-pipeline').style.display = view==='pipeline' ? 'flex' : 'none';
   document.getElementById('view-watchlist').style.display = view==='watchlist' ? '' : 'none';
   document.getElementById('tab-pipeline').classList.toggle('active', view==='pipeline');
   document.getElementById('tab-watchlist').classList.toggle('active', view==='watchlist');
   renderSummary();
-  updateBadges();
   if(view==='watchlist') renderWatchlist();
   if(view==='pipeline') {
     renderSidebar();
-    if(selectedId) renderDetail(selectedId); else if(data.length) { selectedId=data[0].id; renderDetail(selectedId); }
+    if(selectedId) renderDetail(selectedId);
+    else if(data.length) { selectedId=data[0].id; renderDetail(selectedId); }
   }
 }
 
@@ -927,7 +1152,14 @@ function promoteToApplied(id) {
   document.getElementById('m_role').value = w.role||'';
   document.getElementById('m_location').value = '';
   document.getElementById('m_url').value = w.url||'';
+  document.getElementById('m_salary').value = '';
+  document.getElementById('m_ctc').value = '';
+  document.getElementById('m_recruiter').value = '';
+  document.getElementById('m_interview_date').value = '';
+  document.getElementById('m_jd').value = '';
+  document.getElementById('m_cvnotes').value = '';
   document.getElementById('m_date').value = today();
+  ['jd-collapse','cv-collapse'].forEach(id=>document.getElementById(id).classList.remove('open'));
   document.getElementById('watchModal').classList.remove('open');
   document.getElementById('companyModal').classList.add('open');
   window._promoteFromWatchId = id;
@@ -946,15 +1178,15 @@ function renderWatchlist() {
     el.innerHTML=`<div style="grid-column:1/-1;padding:60px;text-align:center;color:var(--muted)">
       <div style="font-size:36px;opacity:.2;margin-bottom:10px">◈</div>
       <div style="font-family:JetBrains Mono,monospace;font-size:11px">NO COMPANIES IN WATCHLIST YET</div>
-      <div style="font-size:12px;color:var(--muted);margin-top:6px">Add companies you want to keep an eye on for future openings</div>
+      <div style="font-size:12px;color:var(--muted);margin-top:6px">Add companies you want to keep an eye on</div>
     </div>`;
     return;
   }
   const pColors={'High':'priority-high','Medium':'priority-med','Low':'priority-low'};
-  el.innerHTML=filtered.map(w=>`
+  el.innerHTML = filtered.map(w=>`
     <div class="watch-card">
-      <div class="watch-card-name">${w.name}</div>
-      ${w.role?`<div class="watch-card-role">${w.role}</div>`:''}
+      <div class="watch-card-name">${esc(w.name)}</div>
+      ${w.role?`<div class="watch-card-role">${esc(w.role)}</div>`:''}
       <div class="watch-card-tags">
         <span class="watch-tag ${pColors[w.priority]||''}">${w.priority||'Medium'} Priority</span>
         ${w.addedDate?`<span class="watch-tag">Added ${fmt(w.addedDate)}</span>`:''}
@@ -969,99 +1201,78 @@ function renderWatchlist() {
     </div>`).join('');
 }
 
-function updateBadges() {
-  var bp = document.getElementById('badge-pipeline');
-  var bw = document.getElementById('badge-watchlist');
-  if (bp) bp.textContent = (data && data.length) || 0;
-  if (bw) bw.textContent = (watchlist && watchlist.length) || 0;
-}
-
-const _origRenderAll = renderAll;
-function renderAll() { _origRenderAll(); updateBadges(); }
-
-function closeModal(id){document.getElementById(id).classList.remove('open');}
+function closeModal(id){ document.getElementById(id).classList.remove('open'); }
 document.querySelectorAll('.overlay').forEach(o=>o.addEventListener('click',e=>{if(e.target===o)o.classList.remove('open');}));
 
-// Handle Enter in comment
 document.addEventListener('keydown', e => {
   if(e.key==='Enter'&&e.ctrlKey&&document.activeElement?.classList.contains('comment-input')) {
     const aid=document.activeElement.id.replace('ci_','');
-    const cid=selectedId;
-    if(cid&&aid) addComment(cid,aid);
+    if(selectedId&&aid) addComment(selectedId,aid);
   }
+  if(e.key==='Escape') document.querySelectorAll('.overlay.open').forEach(o=>o.classList.remove('open'));
 });
 
 function setDataSourceLabel(supabaseActive) {
-  var el = document.getElementById('dataSourceLabel');
-  if (el) el.textContent = supabaseActive ? 'Synced to Supabase' : 'This device only';
+  const el = document.getElementById('dataSourceLabel');
+  if(el) el.textContent = supabaseActive ? '⬡ Supabase sync' : '◌ Local only';
 }
 
 async function init() {
-  var fromLocalPipeline = JSON.parse(localStorage.getItem('jpt3') || '[]');
-  var fromLocalWatch = JSON.parse(localStorage.getItem('jpt3_watch') || '[]');
-  if (useSupabase && supabase) {
+  const fromLocalPipeline = JSON.parse(localStorage.getItem('jpt3')||'[]');
+  const fromLocalWatch = JSON.parse(localStorage.getItem('jpt3_watch')||'[]');
+  if(useSupabase && supabase) {
     try {
       const [p, w] = await Promise.all([
         supabase.from('app_data').select('value').eq('key','pipeline').maybeSingle(),
         supabase.from('app_data').select('value').eq('key','watchlist').maybeSingle()
       ]);
-      var fromSupabasePipeline = (p?.data?.value && Array.isArray(p.data.value)) ? p.data.value : [];
-      var fromSupabaseWatch = (w?.data?.value && Array.isArray(w.data.value)) ? w.data.value : [];
-      var useLocal = (data.length > fromSupabasePipeline.length) || (watchlist.length > fromSupabaseWatch.length);
-      if (fromSupabasePipeline.length > 0 || fromSupabaseWatch.length > 0) {
-        if (useLocal) {
-          await save(); await saveWatch2();
-        } else {
-          data = fromSupabasePipeline;
-          watchlist = fromSupabaseWatch;
+      const fromSupabasePipeline = (p?.data?.value&&Array.isArray(p.data.value)) ? p.data.value : [];
+      const fromSupabaseWatch = (w?.data?.value&&Array.isArray(w.data.value)) ? w.data.value : [];
+      const useLocal = (fromLocalPipeline.length > fromSupabasePipeline.length) || (fromLocalWatch.length > fromSupabaseWatch.length);
+      if(fromSupabasePipeline.length > 0 || fromSupabaseWatch.length > 0) {
+        if(useLocal) { await save(); await saveWatch2(); }
+        else {
+          data = fromSupabasePipeline; watchlist = fromSupabaseWatch;
           localStorage.setItem('jpt3', JSON.stringify(data));
           localStorage.setItem('jpt3_watch', JSON.stringify(watchlist));
         }
       } else {
-        data = fromLocalPipeline;
-        watchlist = fromLocalWatch;
-        localStorage.setItem('jpt3', JSON.stringify(data));
-        localStorage.setItem('jpt3_watch', JSON.stringify(watchlist));
+        data = fromLocalPipeline; watchlist = fromLocalWatch;
         await save(); await saveWatch2();
       }
       setDataSourceLabel(true);
-    } catch (e) {
+    } catch(e) {
       console.warn('Supabase load failed', e);
-      data = fromLocalPipeline;
-      watchlist = fromLocalWatch;
+      data = fromLocalPipeline; watchlist = fromLocalWatch;
       setDataSourceLabel(false);
     }
   } else {
-    data = fromLocalPipeline;
-    watchlist = fromLocalWatch;
+    data = fromLocalPipeline; watchlist = fromLocalWatch;
     setDataSourceLabel(false);
   }
-  if (data.length && !selectedId) selectedId = data[0].id;
-  renderAll();
-  renderWatchlist();
-  updateBadges();
-  requestAnimationFrame(function() { updateBadges(); });
+  if(data.length && !selectedId) selectedId = data[0].id;
+  refreshAll();
 }
 init();
 
 function loadSupabaseWhenIdle() {
-  var script = document.createElement('script');
+  const script = document.createElement('script');
   script.src = 'https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2';
   script.onload = function() {
-    var cfg = document.createElement('script');
+    const cfg = document.createElement('script');
     cfg.src = 'config.js';
     cfg.onload = cfg.onerror = function() {
-      var url = (window.SUPABASE_URL || '').trim();
-      var anon = (window.SUPABASE_ANON || '').trim();
-      if (url && anon) { connectSupabase(url, anon); init(); }
+      const url = (window.SUPABASE_URL||'').trim();
+      const anon = (window.SUPABASE_ANON||'').trim();
+      if(url && anon) { connectSupabase(url, anon); init(); }
     };
     document.head.appendChild(cfg);
   };
-  script.onerror = function() {};
+  script.onerror = function(){};
   document.head.appendChild(script);
 }
-if (typeof requestIdleCallback !== 'undefined') {
-  requestIdleCallback(function() { loadSupabaseWhenIdle(); }, { timeout: 2500 });
+if(typeof requestIdleCallback !== 'undefined') {
+  requestIdleCallback(function(){ loadSupabaseWhenIdle(); }, {timeout:2500});
 } else {
   setTimeout(loadSupabaseWhenIdle, 1200);
 }

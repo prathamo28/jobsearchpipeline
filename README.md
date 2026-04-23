@@ -1,13 +1,19 @@
 # Job Pipeline Tracker
 
-A single-page app to track your job application pipeline and watchlist. All data is stored in your browser and persists when you update details, so you can track your progress anytime.
+A single-page job application tracker. No signup, no server, no framework — open `index.html` and go. Optional Supabase sync for cross-device access.
 
 ## Features
 
-- **Pipeline** — Add companies, move them through stages (Applied → HR → Tech 1 → Tech 2 → CEO → Offer → Accepted), record rejections with type and notes, add comments per attempt, reapply after rejection.
-- **Watchlist** — Save companies you want to watch (role, priority, notes) and promote them to the pipeline when you apply.
-- **Persistence** — Data is saved in your browser (localStorage). Optionally use **Supabase** so data lives in the cloud and syncs across devices.
-- **Backup & restore** — Export a full JSON backup (pipeline + watchlist) and restore it later or on another device so you never lose your data.
+- **7-stage pipeline** — Applied → HR → Technical → Manager → Cultural Fit → Offer → Accepted
+- **Rejection tracking** — Record rejection type (CV, HR, Technical, Manager, Cultural Fit) and notes at any stage. Reapply after rejection with a fresh attempt.
+- **Rich company data** — Salary range, expected CTC, recruiter name, interview date, job description, CV notes per company.
+- **Interview alerts** — Sidebar badge and 7-day countdown alert so you never miss an upcoming interview.
+- **Watchlist** — Save companies you're watching (role, priority, notes) and promote to pipeline when you apply.
+- **Stats bar** — Live counts for total active, in-interview, offers, and accepted.
+- **Offline-first** — All data stored in browser localStorage. No account needed.
+- **Cloud sync** — Optional Supabase integration syncs data across devices.
+- **Backup & restore** — Export full JSON backup (pipeline + watchlist) and restore on any device.
+- **CSV export** — Export pipeline data as a spreadsheet-friendly CSV.
 
 ## How to run
 
@@ -87,10 +93,6 @@ To be extra safe:
 1. Use **↓ BACKUP** every so often and keep the `.json` file (e.g. in Google Drive or OneDrive).
 2. If you use **Supabase**, your data is in the cloud; even clearing the browser or switching devices won’t lose it (just open the app and it loads from Supabase).
 3. Avoid clearing “site data” or “localStorage” for this app in the browser if you’re not using Supabase; that would remove local-only data (you can restore from a backup if you have one).
-
-## Export CSV
-
-Use **↓ CSV** to export pipeline data as a spreadsheet-friendly CSV (one row per attempt). Useful for sharing or analysis outside the app.
 
 ## License
 

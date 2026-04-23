@@ -18,5 +18,8 @@ node_modules/
 # Build-generated (contains keys when built on Vercel)
 config.js
 
+# Scratch / preview files
+preview.html
+
 # User backups (optional: ignore so backups aren’t committed)
 # *.json
